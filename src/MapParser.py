@@ -1,5 +1,5 @@
 from typing import Any
-from src.Zone import Zone, Connection
+from src.Zone import Zone
 
 
 class MapParser:
