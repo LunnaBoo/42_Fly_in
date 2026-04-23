@@ -130,7 +130,7 @@ class MapParser:
                 metadata = None
             x = int(x)
             y = int(y)
-            pos: tuple[int, int] = (x, y)
+            pos: tuple[int, int] = (y, x)
             if metadata:
                 split = metadata.split()
                 for item in split:
@@ -191,7 +191,7 @@ class MapParser:
                 metadata = None
             x = int(x)
             y = int(y)
-            pos: tuple[int, int] = (x, y)
+            pos: tuple[int, int] = (y, x)
             if metadata:
                 split = metadata.split()
                 for item in split:

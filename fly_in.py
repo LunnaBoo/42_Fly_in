@@ -1,6 +1,7 @@
 from src.MapParser import MapParser
 from src.GraphGenerator import GraphGenerator
 import sys
+from src.Zone import Zone
 
 
 if __name__ == "__main__":
@@ -10,9 +11,16 @@ if __name__ == "__main__":
         try:
             raw = MapParser.load_data(argv[1])
             res = MapParser.parse_data(raw)
-            print(res)
+            #print(res)
             graph_gen = GraphGenerator(res)
-            graph_gen.generate_graph()
+            graph = graph_gen.generate_graph()
+            for row in graph:
+                print()
+                for item in row:
+                    if isinstance(item, Zone):
+                        print(1, end=" ")
+                    else:
+                        print(0, end=" ")
         except Exception as e:
             print(e)
             sys.exit(1)
