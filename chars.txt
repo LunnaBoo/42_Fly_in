@@ -1,0 +1,5 @@
+cicle with opening - ○
+filled circle - ◉
+horizontal line - ━
+vertical line - ┃
+zone blocks - 

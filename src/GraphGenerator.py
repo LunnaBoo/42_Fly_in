@@ -146,7 +146,7 @@ class GraphGenerator:
                 return zone
         return 0
 
-    def generate_graph(self) -> list[list[Zone | int]]:
+    def generate_graph(self) -> dict[str, Any]:
         """
         Generates the graph to be later traversed by the
         drones.
@@ -175,4 +175,4 @@ class GraphGenerator:
                 zone = GraphGenerator.decide_zone(y, x, y_offset,
                                                   x_offset, self.hubs)
                 graph[y][x] = zone
-        return graph
+        return dict(graph=graph, width=width, height=height)
