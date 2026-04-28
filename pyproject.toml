@@ -4,10 +4,12 @@ package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.10"
+textual = "^8.2.4"
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.0"
 flake8 = "^6.0"
+textual-dev = "^1.8.0"
 build = "^1.2.2"
 
 [tool.mypy]

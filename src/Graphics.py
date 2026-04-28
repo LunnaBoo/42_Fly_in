@@ -7,26 +7,50 @@ class Graphics:
     def render_frame(graph: list[list[Zone | int]],
                      width: int, height: int) -> None:
         zone_char: str = "\x1b[48;2;150;251;199m   \x1b[0m"
-        connection_char: str = "○"
-        vertical_line: str = "┃"
-        horizontal_line: str = "━"
+        vertical_line: str = "|"
+        horizontal_line: str = "-"
+        top_left_corner: str = "┌"
+        top_right_corner: str = "┐"
+        bottom_left_corner: str = "└"
+        bottom_right_corner: str = "┘"
         result: str = ""
         d_graph: deque = deque(graph)
         for y in range(height):
             if d_graph:
-                zone_line = deque(d_graph.popleft())
+                first_cell_line = deque(d_graph.popleft())
+                if d_graph:
+                    second_cell_line = deque(d_graph.popleft())
+                    if d_graph:                                    
+                        third_cell_line = deque(d_graph.popleft())
             else:
                 break
-            line = ""
+            first_line = ""
+            second_line = ""
+            third_line = ""
             for x in range(width):
-                zone = zone_line.popleft()
-                if isinstance(zone, int):
-                    line += "---"
-                else:
-                    line += zone_char
-                    if zone_line:
-                        line += horizontal_line
-            result += line
+                if first_cell_line:
+                    cell = first_cell_line.popleft()
+                    if isinstance(cell, int):
+                        first_line += "   "
+                    else:
+                        first_line += zone_char
+                
+                if second_cell_line:
+                    cell = second_cell_line.popleft()
+                    if isinstance(cell, int):
+                        second_line += "   "
+                    else:
+                        second_line += zone_char
+                if third_cell_line:
+                    cell = third_cell_line.popleft()
+                    if isinstance(cell, int):
+                        third_line += "   "
+                    else:
+                        third_line += zone_char
+
+            result += first_line + "\n"
+            result += second_line + "\n"
+            result += third_line + "\n"
         print(result)
 
     class Colorscheme:

@@ -1,5 +1,5 @@
 from typing import Any
-from src.Zone import Zone
+from src.Zone import Zone, Connection
 
 
 class MapParser:
@@ -273,35 +273,25 @@ class MapParser:
         parsed_data["hubs"] = hub_dict
         parsed_data.pop("start_hub")
         parsed_data.pop("end_hub")
-        return parsed_data
+        return MapParser.link_zone_to_connection(parsed_data)
 
-#    @classmethod
-#    def link_connections_to_zones(
-#            cls, parsed_data: dict[str, Any]
-#            ) -> dict[str, Any]:
-#        hubs: dict[str, Zone] = parsed_data["hubs"]
-#        connections: dict[str, int] = parsed_data["connections"]
-#        try:
-#            for key in connections:
-#                hub1, hub2 = key.split("-", 1)
-#                max_link_capacity = connections[key]
-#                zone1 = None
-#                zone2 = None
-#                for n_key in hubs:
-#                    if n_key == hub1:
-#                        zone1 = hubs[n_key]
-#                    elif n_key == hub2:
-#                        zone2 = hubs[n_key]
-#                    if zone1 and zone2:
-#                        break
-#                if isinstance(zone1, Zone) and isinstance(zone2, Zone):
-#                    connection = Connection(zone1, zone2, max_link_capacity)
-#                    zone1.connections.append(connection)
-#                    zone2.connections.append(connection)
-#                else:
-#                    raise Exception("Error during zone object instantiation")
-#        except Exception as e:
-#            raise ValueError(f"MapParser ERROR in '{key}':", e)
-#        parsed_data["hubs"] = hubs
-#        parsed_data["connections"] = connections
-#        return parsed_data
+    @classmethod
+    def link_zone_to_connection(
+            cls, parsed_data: dict[str, Any]
+            ) -> dict[str, Any]:
+        connections = parsed_data["connections"]
+        hubs = parsed_data["hubs"]
+        try:
+            for name in connections:
+                split = name.split("-", 1)
+                prev_zone = hubs[split[0]]
+                next_zone = hubs[split[1]]
+                max_link = connections[name]
+                connection = Connection(name, prev_zone,
+                                        next_zone,
+                                        max_link)
+                connections[name] = connection
+        except Exception as e:
+            raise ValueError(f"MapParser ERROR in {name}", e)
+        parsed_data["connections"] = connections
+        return parsed_data

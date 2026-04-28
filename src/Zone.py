@@ -31,10 +31,12 @@ class Zone:
         self.connections = zone_connections
         return zone_connections
 
-#class Connection:
-#    def __init__(self, previous_zone: Zone,
-#                 next_zone: Zone,
-#                 max_link_capacity: int = 1) -> None:
-#        self.previous_zone = previous_zone
-#        self.next_zone = next_zone
-#        self.max_link_capacity = max_link_capacity
+class Connection:
+    def __init__(self, name: str,
+                 previous_zone: Zone,
+                 next_zone: Zone,
+                 max_link_capacity: int = 1) -> None:
+        self.name = name
+        self.previous_zone = previous_zone
+        self.next_zone = next_zone
+        self.max_link_capacity = max_link_capacity
