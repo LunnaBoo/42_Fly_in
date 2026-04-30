@@ -1,5 +1,5 @@
 from typing import Any
-from src.Zone import Zone
+from src.GraphLogic import Zone
 
 
 class GraphGenerator:

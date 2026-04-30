@@ -2,6 +2,7 @@ from typing import Union
 
 
 class Zone:
+    _all_zones: list["Zone"] = []
     def __init__(self, name: str, zone_type: str,
                  pos: tuple[int, int],
                  connections: dict[str, int] | None = None,
@@ -17,6 +18,7 @@ class Zone:
         self.is_end = is_end
         self.max_drones = max_drones
         self.color = color
+        Zone._all_zones.append(self)
 
     # SKETCH
     def get_connection(self,
@@ -31,7 +33,9 @@ class Zone:
         self.connections = zone_connections
         return zone_connections
 
+
 class Connection:
+    _all_connections: list["Connection"] = []
     def __init__(self, name: str,
                  previous_zone: Zone,
                  next_zone: Zone,
@@ -40,3 +44,4 @@ class Connection:
         self.previous_zone = previous_zone
         self.next_zone = next_zone
         self.max_link_capacity = max_link_capacity
+        Connection._all_connections.append(self)

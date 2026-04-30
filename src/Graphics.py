@@ -1,4 +1,4 @@
-from src.Zone import Zone
+from src.GraphLogic import Zone
 from collections import deque
 
 

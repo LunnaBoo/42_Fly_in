@@ -1,5 +1,5 @@
 from typing import Any
-from src.Zone import Zone, Connection
+from src.GraphLogic import Zone, Connection
 
 
 class MapParser:
@@ -275,6 +275,7 @@ class MapParser:
         parsed_data.pop("end_hub")
         return MapParser.link_zone_to_connection(parsed_data)
 
+    # NOT WORKING - MUST BE FIXED
     @classmethod
     def link_zone_to_connection(
             cls, parsed_data: dict[str, Any]
