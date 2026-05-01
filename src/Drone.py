@@ -1,4 +1,4 @@
-from src.GraphLogic import Zone
+from src.GraphLogic import Zone, Connection
 
 
 class Drone:
@@ -10,16 +10,16 @@ class Drone:
       # self.lock = threading.lock()
         Drone._all_drones.append(self)
 
-    def act(self) -> None:
+    def act(self, graph: dict[Zone, list[Connection]]) -> str:
         if not self.route:
             route = self.path_finder()
-        can_move: bool = self.move()
-        if can_move is False:
+        movement: str = self.move()
+        if not movement:
             route = self.path_finder()
-        can_move = self.move()
-        return
+        movement = self.move()
+        return movement
 
-    def move(self) -> bool: ...
+    def move(self) -> str: ...
     # Needs a lock
 
     def path_finder(self) -> list[Zone]: ...

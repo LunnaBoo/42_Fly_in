@@ -1,6 +1,6 @@
 from src.MapParser import MapParser
-from src.GraphGenerator import GraphGenerator
 from src.Graphics import Graphics
+from src.GraphGenerator import GraphGenerator
 import sys
 from src.GraphLogic import Zone
 
@@ -12,13 +12,8 @@ if __name__ == "__main__":
         try:
             raw = MapParser.load_data(argv[1])
             res = MapParser.parse_data(raw)
-            zone1 = res["hubs"]["start"]
-            print(zone1.name)
-            graph_gen = GraphGenerator(res)
-            graph_res = graph_gen.generate_graph()
-            graph = graph_res["graph"]
-            width = graph_res["width"]
-            height = graph_res["height"]
+            GraphGenerator.configure_graph(res)
+            GraphGenerator.generate_graph()
         except Exception as e:
             print(e)
             sys.exit(1)

@@ -273,13 +273,27 @@ class MapParser:
         parsed_data["hubs"] = hub_dict
         parsed_data.pop("start_hub")
         parsed_data.pop("end_hub")
-        return MapParser.link_zone_to_connection(parsed_data)
+        return MapParser.create_connection_objects(parsed_data)
 
-    # NOT WORKING - MUST BE FIXED
     @classmethod
-    def link_zone_to_connection(
+    def create_connection_objects(
             cls, parsed_data: dict[str, Any]
             ) -> dict[str, Any]:
+        """
+        Creates Connection objects based on parsed data from
+        parse_data() method.
+
+        Parameters
+        ----------
+        parsed_data: dict[str, Any]
+            Parsed data from parse_data() method
+
+        Returns
+        -------
+        dict[str, Any]
+            Final output with all data organized.
+        """
+
         connections = parsed_data["connections"]
         hubs = parsed_data["hubs"]
         try:
