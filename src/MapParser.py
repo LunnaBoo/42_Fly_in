@@ -12,116 +12,80 @@ class MapParser:
             "nb_drones", "start_hub", "end_hub",
             "hub", "connection"
             ]
-    loaded_keys: list[str] = [
-            "nb_drones", "start_hub", "end_hub",
-            "hubs", "connections"
-            ]
 
     @classmethod
-    def load_data(cls, filename: str) -> dict[str, dict | str]:
-        """
-        Reads from input file and returns a dict with all
-        extracted information organized.
-
-        Parameters
-        ----------
-        filename: str
-            String with the input file's filename
-
-        Returns
-        -------
-        dict[str, dict | str]
-            A dictionary with string keys and values that vary
-            between dictionaries, for hubs and connections, and
-            plain strings, for the rest of the data.
-        """
-        raw_data: dict[str, dict | str] = {}
-        hubs: dict[str, str] = {}
-        connections: dict[str, str] = {}
+    def parse_data(cls, filename: str) -> dict[str, Any]:
+        data: dict[str, Any] = {}
         with open(filename, "r") as file:
             for i, line in enumerate(file, 1):
                 line = line.strip()
                 if not line or line.startswith("#"):
                     continue
-
                 if ":" not in line:
-                    raise ValueError(f"Invalid format at line {i}:"
-                                     " missing ':'.")
-
+                    raise ValueError(f"ERROR: Invalid formatting in map file at line {i}.")
+                if "nb_drones" not in data and "nb_drones" not in line:
+                    raise ValueError("ERROR: In the map file nb_drones must be "
+                                     "defined in the first line after empty or "
+                                     "comment lines.")
                 parts = line.split(":", 1)
                 key = parts[0].strip()
                 value = parts[1].strip()
-                
+
                 if key not in cls.valid_keys:
-                    raise ValueError(f"Invalid key at line {i}: '{key}'.")
+                    raise ValueError(f"ERROR: Invalid key in map file at line {i}.")
                 if key != "hub" and key != "connection":
-                    if key in raw_data:
-                        raise ValueError(f"Duplicate key found at line {i}: "
-                                         f"'{key}'.")
+                    if key in data:
+                        raise ValueError(f"ERROR: Duplicate key in map file at line {i}.")
                 if not value:
-                    raise ValueError(f"Empty value for key '{key}' "
-                                     f"at line {i}.")
-                if key == "hub":
-                    split = value.split(" ", 1)
-                    name = split[0]
-                    value = split[1]
-                    hubs[name] = value
+                    raise ValueError(f"ERROR: Empty value in map file at line {i}.")
+                if key == "nb_drones":
+                    try:
+                        data["nb_drones"] = MapParser.__parse_nb_drones(value)
+                    except Exception:
+                        raise ValueError(f"ERROR: Invalid value in map file at line {i}."
+                                         "Only positive numbers are allowed for nb_drones.")
+                elif key == "hub":
+                    try:
+                        data["hub"] = MapParser.__parse_hub(key, value)
+                    except Exception:
+                        raise ValueError("ERROR: Invalid hub in map file "
+                                         f"at line {i}.")
+                elif key == "start_hub":
+                    try:
+                        data["start_hub"] = MapParser.__parse_hub(key, value)
+                    except Exception:
+                        raise ValueError("ERROR: Invalid start_hub in map file "
+                                         f"at line {i}.")
+                elif key == "end_hub":
+                    try:
+                        data["end_hub"] = MapParser.__parse_hub(key, value)
+                    except Exception:
+                        raise ValueError("ERROR: Invalid end_hub in map file "
+                                         f"at line {i}.")
                 elif key == "connection":
-                    split = value.split(" ", 1)
-                    name = split[0]
-                    if len(split) > 1:
-                        value = split[1].split("=", 1)[1]
-                        value = value.removesuffix("]")
-                        connections[name] = value
-                    else:
-                        connections[name] = "1"
+                    try:
+                        data["connection"] = MapParser.__parse_connection(value,
+                                                                          data["hub"])
+                    except Exception:
+                        raise ValueError("ERROR: Invalid connection in map file "
+                                         f"at line {i}.")
                 else:
-                    raw_data[key] = value
-            raw_data["hubs"] = hubs
-            raw_data["connections"] = connections
-            for key in cls.loaded_keys:
-                if key not in raw_data.keys():
-                    raise ValueError(f"Missing key: '{key}'.")
-        return raw_data
+                    raise ValueError(f"ERROR: Unknown key in map file at line {i}")
+        return MapParser.__validate(data)
 
     @staticmethod
-    def string_parser(key: str, value: str,
-                      zone_type: str, color: str | None,
-                      max_drones: int) -> Zone | int:
-        """
-        Helper method used in parse_data() method.
-        Parses string values, such as end_hub, start_hub
-        and nb_drones.
+    def __parse_nb_drones(value: str) -> int:
+        try:
+            parsed_value: int = int(value)
+            if parsed_value < 0:
+                raise Exception
+        except Exception:
+            raise ValueError()
+        return parsed_value
 
-        Parameters
-        ----------
-        key: str
-            Dictionary key
-        value: str,
-            Dictionary value
-        zone_type: str
-            Store zone_type in case of hubs
-        color: str | None
-            Stores zone color in case of hubs
-        max_drones: int
-            Stores max drones number in case of hubs
-
-        Returns
-        -------
-        Zone | int
-            Zone in case of hubs, int in case of
-            nb_drones.
-        """
-
-        if key == "nb_drones":
-            return int(value)
-        else:
-            is_start: bool = True
-            is_end: bool = True
-            if key == "start_hub":
-                is_end = False
-            else:
-                is_start = False
+    @staticmethod
+    def __parse_hub(key: str, value: str) -> Zone:
+        try:
             split = value.split(" ", 3)
             if len(split) > 3:
                 name, x, y, metadata = split
@@ -131,6 +95,15 @@ class MapParser:
             x = int(x)
             y = int(y)
             pos: tuple[int, int] = (y, x)
+            zone_type: str = "normal"
+            color: str | None = None
+            max_drones: int = 1
+            is_start: bool = False
+            is_end: bool = False
+            if key == "start_hub":
+                is_start = True
+            elif key == "end_hub":
+                is_end = True
             if metadata:
                 split = metadata.split()
                 for item in split:
@@ -143,170 +116,59 @@ class MapParser:
                         color = n_value
                     elif n_key == "max_drones":
                         max_drones = int(n_value)
-            zone: Zone = Zone(name=name, zone_type=zone_type,
-                              pos=pos, is_start=is_start,
-                              is_end=is_end, color=color,
-                              max_drones=max_drones)
-            return zone
+                    else:
+                        raise ValueError("ERROR: Unsupported metadata in map file.")
+            zone = Zone(name=name, zone_type=zone_type, pos=pos,
+                        color=color, max_drones=max_drones,
+                        is_start=is_start, is_end=is_end)
+        except Exception:
+            raise ValueError()
+        return zone
 
     @staticmethod
-    def dict_parser(key: str, n_key: str, value: dict, zone_type: str,
-                    color:str | None,
-                    max_drones: int) -> tuple[str, Zone] | tuple[str, int]:
-        """
-        Helper method used in parse_data() method.
-        Parses dictionary values, specifically hubs and
-        connections from input file.
-
-        Parameters
-        ----------
-        key: str
-            Key from outer dictionary. Ex.: "hubs", "connections"
-        n_key: str
-            Key from inner dictionary. It's the name of the Zone/hub.
-        value: dict
-            The inner dicionary itself.
-        zone_type: str
-            Stores zone_type in case of hubs
-        color: str | None
-            Stores zone color in case of hubs
-        max_drones: int
-            Stores maximum drones number in case of hubs.
-
-        Returns
-        -------
-        tuple[str, int] | tuple[str, Zone]
-            Extracted data. String will be used as key in the
-            main method outside this function, and int | Zone
-            will be the value. Int in case of connections and
-            Zone in case of hubs.
-        """
-        if key == "hubs":
-            name = n_key
-            split = value[n_key].split(" ", 2)
-            if len(split) > 2:
-                x, y, metadata = split
+    def __parse_connection(value: str, hub: Zone) -> Connection:
+        try:
+            max_link: int = 1
+            next_zone = None
+            prev_zone = None
+            zone_list = hub._all_zones
+            split = value.split(" ", 1)
+            name = split[0]
+            if len(split) > 1:
+                metadata = split[1]
             else:
-                x, y = split
                 metadata = None
-            x = int(x)
-            y = int(y)
-            pos: tuple[int, int] = (y, x)
+            zone_names = name.split("-", 1)
+            for item in zone_list:
+                if item.name == zone_names[0]:
+                    prev_zone = item
+                elif item.name == zone_names[1]:
+                    next_zone = item
             if metadata:
-                split = metadata.split()
-                for item in split:
-                    new_key, new_value = item.split("=", 1)
-                    new_key = new_key.removeprefix("[")
-                    new_value = new_value.removesuffix("]")
-                    if new_key == "zone":
-                        zone_type = new_value
-                    elif new_key == "color":
-                        color = new_value
-                    elif new_key == "max_drones":
-                        max_drones = int(new_value)
-            zone: Zone = Zone(name=name, zone_type=zone_type,
-                              pos=pos, color=color,
-                              max_drones=max_drones)
-            return (n_key, zone)
-        elif key == "connections":
-            name = n_key
-            max_link_capacity = int(value[n_key])
-            return (name, max_link_capacity)
-        raise ValueError("MapParser ERROR: Something went wrong during parsing")
+                metadata = metadata.removeprefix("[")
+                metadata = metadata.removesuffix("]")
+                split = metadata.split("=", 1)
+                max_link = int(split[1])
+            connection = Connection(name, prev_zone, next_zone, max_link)
+        except Exception:
+            raise ValueError()
+        return connection
 
-    @classmethod
-    def parse_data(cls, 
-                   raw_data: dict[str, dict | str]) -> dict[str, Any]:
-        """
-        Applies data types other than str to the values of
-        the raw_data dictionary received by parameter.
-        Also acts as validation.
-
-        Parameters
-        ----------
-        raw_data: dict[str, dict | str]
-            Output from load_data method
-
-        Returns
-        -------
-        dict[str, Any]
-            Parsed data.
-        """
-
-        parsed_data: dict[str, Any] = {}
-        hub_dict = {}
-        connection_dict = {}
-        try:
-            for key, value in raw_data.items():
-                zone_type: str = "normal"
-                color: str | None = None
-                max_drones: int = 1 
-                if isinstance(value, str):
-                    parsed_data[key] = MapParser.string_parser(key, value,
-                                                          zone_type,
-                                                          color,
-                                                          max_drones)
-                if isinstance(value, dict):
-                    try:
-                        start_name = parsed_data["start_hub"].name
-                        hub_dict[start_name] = parsed_data["start_hub"]
-                    except Exception as e:
-                        raise ValueError("MapParser ERROR in 'start_hub' key:", e)
-                    for n_key in value:
-                        res: tuple[str, int] | tuple[str, Zone] = (
-                                MapParser.dict_parser(key, n_key, value,
-                                                      zone_type, color,
-                                                      max_drones)
-                                )
-                        name, n_value = res
-                        if isinstance(n_value, int):
-                            connection_dict[name] = n_value
-                            parsed_data[key] = connection_dict
-                        elif isinstance(n_value, Zone):
-                            hub_dict[name] = n_value
-                            parsed_data[key] = hub_dict
-        except Exception as e:
-            raise ValueError(f"MapParser ERROR in '{key}':", e)
-
-        end_name = parsed_data["end_hub"].name
-        hub_dict[end_name] = parsed_data["end_hub"]
-        parsed_data["hubs"] = hub_dict
-        parsed_data.pop("start_hub")
-        parsed_data.pop("end_hub")
-        return MapParser.create_connection_objects(parsed_data)
-
-    @classmethod
-    def create_connection_objects(
-            cls, parsed_data: dict[str, Any]
-            ) -> dict[str, Any]:
-        """
-        Creates Connection objects based on parsed data from
-        parse_data() method.
-
-        Parameters
-        ----------
-        parsed_data: dict[str, Any]
-            Parsed data from parse_data() method
-
-        Returns
-        -------
-        dict[str, Any]
-            Final output with all data organized.
-        """
-
-        connections = parsed_data["connections"]
-        hubs = parsed_data["hubs"]
-        try:
-            for name in connections:
-                split = name.split("-", 1)
-                prev_zone = hubs[split[0]]
-                next_zone = hubs[split[1]]
-                max_link = connections[name]
-                connection = Connection(name, prev_zone,
-                                        next_zone,
-                                        max_link)
-                connections[name] = connection
-        except Exception as e:
-            raise ValueError(f"MapParser ERROR in {name}", e)
-        parsed_data["connections"] = connections
-        return parsed_data
+    @staticmethod
+    def __validate(data: dict[str, Any]) -> dict[str, Any]:
+        zone_list = data["hub"]._all_zones
+        connection_list = data["connection"]._all_connections
+        name_list = []
+        for item in zone_list:
+            if item.name in name_list:
+                raise ValueError("ERROR: Hubs with identical names in map file.")
+            if "-" in item.name or " " in item.name:
+                raise ValueError("ERROR: Invalid hub name in map file")
+            name_list.append(item.name)
+        name_list.clear()
+        for item in connection_list:
+            if item.name in name_list:
+                raise ValueError("ERROR: Duplicate connections in map file.")
+            name_list.append(item.name)
+        # Missing validation for duplicate a-b b-a
+        return data

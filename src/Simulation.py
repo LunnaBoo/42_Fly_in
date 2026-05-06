@@ -1,5 +1,5 @@
-from src.GraphLogic import Zone, Connection
-from src.GraphGenerator import GraphGenerator
+from src.MapParser import MapParser
+from src.GraphLogic import Zone, Connection, GraphGenerator
 from src.Drone import Drone
 from typing import Any
 
@@ -13,7 +13,7 @@ class Simulation:
     output: str = ""
 
     @classmethod
-    def configure_simulation(cls, map: dict[str, Any]) -> None:
+    def configure(cls, filename: str) -> None:
         """
         Generates the graph structure based on data passed as
         parameter and stores the data and graph as class attributes.
@@ -25,14 +25,13 @@ class Simulation:
         """
 
         try:
-            GraphGenerator.configure_graph(map)
-        except ValueError:
-            raise ValueError("Simulation ERROR: configure_simulation() "
-                             "method must be ran before run_simulation()!")
-        cls.graph = GraphGenerator.generate_graph()
-        cls.zones = GraphGenerator.zones
-        cls.connections = GraphGenerator.connections
-        cls.nb_drones = GraphGenerator.nb_drones
+            map: dict[str, Any] = MapParser.parse_data(filename)
+        except ValueError as e:
+            raise ValueError(e)
+        cls.graph = GraphGenerator.generate_graph(map)
+        cls.zones = map["hub"]._all_zones
+        cls.connections = map["connection"]._all_connections
+        cls.nb_drones = map["nb_drones"]
         for _ in range(cls.nb_drones):
             drone = Drone()
             cls.drones = drone._all_drones
@@ -41,4 +40,10 @@ class Simulation:
     def __run_turn(cls) -> str: ...
 
     @classmethod
-    def run_simulation(cls) -> str: ...
+    def run(cls) -> str:
+        output: str = ""
+        if not cls.graph:
+            raise ValueError("ERROR: Simulation configure() method must run "
+                             "before run() method.")
+
+        return output

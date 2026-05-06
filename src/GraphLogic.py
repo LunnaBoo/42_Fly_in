@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Any
 
 
 class Zone:
@@ -30,3 +30,32 @@ class Connection:
         self.next_zone = next_zone
         self.max_link_capacity = max_link_capacity
         Connection._all_connections.append(self)
+
+
+class GraphGenerator:
+    @staticmethod
+    def generate_graph(map: dict[str, Any]) -> dict[Zone, list[Connection]]:
+        """
+        Generates a graph based on it's class attributes 
+        represented by an adjacency list.
+
+        Returns
+        -------
+        dict[Zone, Connection | None]:
+            A dictionary with Zone objects as keys and a list of
+            Connection objects as values.
+        """
+
+        zones = map["hub"]._all_zones
+        connections = map["connection"]._all_connections
+        nb_drones = map["nb_drones"]
+        if len(zones) < 1 or len(connections) < 1 or nb_drones < 1:
+            raise ValueError
+        graph: dict[Zone, list[Connection]] = {}
+        for zone in zones:
+            zone_connections = []
+            for connection in connections:
+                if connection.previous_zone == zone or connection.next_zone == zone:
+                    zone_connections.append(connection)
+            graph[zone] = zone_connections
+        return graph
