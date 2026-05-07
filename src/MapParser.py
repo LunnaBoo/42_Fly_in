@@ -42,7 +42,7 @@ class MapParser:
                     try:
                         data["nb_drones"] = MapParser.__parse_nb_drones(value)
                     except Exception:
-                        raise ValueError(f"ERROR: Invalid value in map file at line {i}."
+                        raise ValueError(f"ERROR: Invalid value in map file at line {i}. "
                                          "Only positive numbers are allowed for nb_drones.")
                 elif key == "hub":
                     try:
@@ -117,7 +117,10 @@ class MapParser:
                     elif n_key == "max_drones":
                         max_drones = int(n_value)
                     else:
-                        raise ValueError("ERROR: Unsupported metadata in map file.")
+                        raise ValueError()
+            accepted_types = ["normal", "blocked", "priority", "restricted"]
+            if zone_type not in accepted_types or max_drones < 0:
+                raise ValueError()
             zone = Zone(name=name, zone_type=zone_type, pos=pos,
                         color=color, max_drones=max_drones,
                         is_start=is_start, is_end=is_end)
@@ -149,7 +152,26 @@ class MapParser:
                 metadata = metadata.removesuffix("]")
                 split = metadata.split("=", 1)
                 max_link = int(split[1])
-            connection = Connection(name, prev_zone, next_zone, max_link)
+            if isinstance(prev_zone, Zone) and isinstance(next_zone, Zone):
+                if max_link < 0:
+                    raise ValueError()
+                connection = Connection(name, prev_zone, next_zone, max_link)
+                connection_list = connection._all_connections
+                if len(connection_list) > 1:
+                    connection_prev = connection.previous_zone.name
+                    connection_next = connection.next_zone.name
+                    connection_check = sorted([connection_prev, connection_next])
+                    for item in connection_list:
+                        if item == connection:
+                            continue
+                        item_prev = item.previous_zone.name
+                        item_next = item.next_zone.name
+                        item_check = sorted([item_prev, item_next])
+                        print(item_check, connection_check)
+                        if item_check == connection_check:
+                            raise ValueError()
+            else:
+                raise ValueError()
         except Exception:
             raise ValueError()
         return connection
@@ -170,5 +192,4 @@ class MapParser:
             if item.name in name_list:
                 raise ValueError("ERROR: Duplicate connections in map file.")
             name_list.append(item.name)
-        # Missing validation for duplicate a-b b-a
         return data

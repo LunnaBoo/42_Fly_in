@@ -1,4 +1,3 @@
-from src.Graphics import Graphics
 from src.Simulation import Simulation
 import sys
 from src.GraphLogic import Zone
