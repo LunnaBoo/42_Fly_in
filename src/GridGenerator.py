@@ -1,15 +1,17 @@
 from typing import Any
-from src.GraphLogic import Zone
+from src.GraphLogic import Zone, Connection
 
 
 class GridGenerator:
     def __init__(self, map: dict[str, Any]) -> None:
         self.nb_drones: int = map.get("nb_drones", -1)
-        self.hubs: dict[str, Zone] = map.get("hubs", {})
-        self.connections: dict[str, int] = map.get("connections", {})
+        hub = map.get("hub", {})
+        connection = map.get("connection", {})
+        self.hubs: list[Zone] = hub._all_zones
+        self.connections: list[Connection] = connection._all_connections
 
     @staticmethod
-    def get_area(hubs: dict[str, Zone]) -> dict[str, int]:
+    def get_area(hubs: list[Zone]) -> dict[str, int]:
         """
         Calculates the necessary measures for the
         generate_graph() method to define the area of the
@@ -29,8 +31,7 @@ class GridGenerator:
 
         x_list: list = []
         y_list: list = []
-        for key in hubs:
-            zone = hubs[key]
+        for zone in hubs:
             y, x = zone.pos
             x_list.append(x)
             y_list.append(y)
@@ -107,7 +108,7 @@ class GridGenerator:
     @staticmethod
     def decide_zone(y_index: int, x_index: int,
                     y_offset: int, x_offset: int,
-                    hubs: dict[str, Zone]) -> Zone | int:
+                    hubs: list[Zone]) -> Zone | int:
         """
         Checks if there is a zone in the given coordinates
         or not. If there is, returns it, else returns 0.
@@ -138,8 +139,7 @@ class GridGenerator:
             returns 0.
         """
 
-        for key in hubs:
-            zone = hubs[key]
+        for zone in hubs:
             zone_y, zone_x = zone.pos
             if (zone_y == (y_index - y_offset)
                and zone_x == (x_index - x_offset)):
@@ -175,4 +175,5 @@ class GridGenerator:
                 zone = GridGenerator.decide_zone(y, x, y_offset,
                                                   x_offset, self.hubs)
                 graph[y][x] = zone
-        return dict(grid=graph, width=width, height=height)
+        return dict(grid=graph, width=width, height=height,
+                    x_offset=x_offset, y_offset=y_offset)

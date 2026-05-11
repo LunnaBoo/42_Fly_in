@@ -167,7 +167,6 @@ class MapParser:
                         item_prev = item.previous_zone.name
                         item_next = item.next_zone.name
                         item_check = sorted([item_prev, item_next])
-                        print(item_check, connection_check)
                         if item_check == connection_check:
                             raise ValueError()
             else:
