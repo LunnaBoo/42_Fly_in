@@ -1,12 +1,42 @@
 VisualOutput {
-	border: heavy white;
-	padding: 1 1;
+	border: heavy #fe6c90;
+	padding: 5 10;
+	background: #260d34;
 }
 
 Map {
 	layout: grid;
+	background: #452459;
 	align: center middle;
 	grid_rows: auto;
 	grid-columns: auto;
-	grid-gutter: 1;
+	grid-gutter: 2;
+}
+
+Tabs {
+	height: 3;
+}
+
+Tab {
+	height: 50;
+	width: 50%;
+}
+
+#ZoneLabel {
+	text-style: bold;
+	padding: 1 1;
+	width: 100%;
+	height: 5;
+	border: white;
+	text-align: center;
+}
+
+#ZoneButton {
+	background: #d03791;
+	margin: 1;
+	padding: 0;
+	width: 15;
+	height: 5;
+	min_width: 0;
+
 }
