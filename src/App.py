@@ -1,9 +1,11 @@
 from textual.app import App, ComposeResult
-from textual.widgets import Footer, Header, Static, Button
+from textual.widgets import Footer, Header, Static, Button, Label
 from textual.widget import Widget
 from textual.containers import Container
+from textual.screen import Screen
 from textual.reactive import reactive, var
 from src.Simulation import Simulation
+from src.GraphLogic import Zone, Connection
 from typing import Any
 import sys
 
@@ -11,6 +13,11 @@ import sys
 argv = sys.argv
 simulation = Simulation()
 simulation.configure(argv[1])
+
+
+class ZoneWidget(Screen):
+    pass
+
 
 class Map(Container):
 
@@ -20,8 +27,9 @@ class Map(Container):
         zones_to_mount = []
         for y in range(simulation.grid_height):
             for x in range(simulation.grid_width):
-                if simulation.grid[y - simulation.y_offset][x - simulation.x_offset]:
-                    zones_to_mount.append(Static(f"Cell{y}{x}"))
+                zone = simulation.grid[y - simulation.y_offset][x - simulation.x_offset]
+                if isinstance(zone, Zone):
+                    zones_to_mount.append(Button("", id=str(zone.id), tooltip=zone.name))
                 else:
                     zones_to_mount.append(Static())
         self.mount_all(zones_to_mount)

@@ -4,7 +4,7 @@ from src.GraphLogic import Zone, Connection
 class Drone:
     _all_drones: list["Drone"] = []
     def __init__(self) -> None:
-        self.id: int = len(Drone._all_drones) + 1
+        self.id: str = "D" + str(len(Drone._all_drones) + 1)
         self.path: list[Zone] = []
         self.route: list[Zone] = []
       # self.lock = threading.lock()

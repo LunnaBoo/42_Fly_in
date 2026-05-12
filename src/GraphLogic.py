@@ -9,6 +9,7 @@ class Zone:
                  is_end: bool = False,
                  max_drones: int = 1,
                  color: str | None = None) -> None:
+        self.id: str = "Z" + str(len(Zone._all_zones) + 1)
         self.name = name
         self.zone_type = zone_type
         self.pos = pos
@@ -25,6 +26,7 @@ class Connection:
                  previous_zone: Zone,
                  next_zone: Zone,
                  max_link_capacity: int = 1) -> None:
+        self.id: str = "C" + str(len(Connection._all_connections) + 1)
         self.name = name
         self.previous_zone = previous_zone
         self.next_zone = next_zone
