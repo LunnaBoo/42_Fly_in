@@ -17,6 +17,8 @@ class Zone:
         self.is_end = is_end
         self.max_drones = max_drones
         self.color = color
+        self.drones_in: list = []
+        self.grid_pos: tuple = (0, 0)
         Zone._all_zones.append(self)
 
 
@@ -31,6 +33,8 @@ class Connection:
         self.previous_zone = previous_zone
         self.next_zone = next_zone
         self.max_link_capacity = max_link_capacity
+        self.grid_pos: tuple[int, int] = (0, 0)
+        self.char: str = ""
         Connection._all_connections.append(self)
 
 

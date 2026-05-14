@@ -1,27 +1,25 @@
 from textual.app import App, ComposeResult
-from textual.widgets import Footer, Header, Static, Button, Label, Tab, Tabs
+from textual.css.types import AlignHorizontal
+from textual.widgets import Tabs, Footer, Header, Static, Button, Label, TabPane, TabbedContent
+from textual.widgets._tabbed_content import ContentTabs
 from textual.widget import Widget
-from textual.containers import Container
+from textual.containers import Container, ScrollableContainer, Center
 from textual.screen import Screen
-from textual.reactive import reactive, var
+from textual.reactive import reactive
+from textual.events import Key
 from textual import getters, events
 from src.Simulation import Simulation
 from src.GraphLogic import Zone, Connection
-from typing import Any
 import sys
 
 
 class FlyInApp(App):
     """App class responsable for the front-end of our program."""
 
-    CSS_PATH = "grid_layout.tcss"
     BINDINGS = [
-        ("left", "previous_turn", "Shows previous turn"),
-        ("right", "next_turn", "Shows next turn"),
-        ("p", "start_or_pause", "Starts/pauses the animation"),
-        ("c", "change_colorscheme", "Change colorscheme"),
-        ("tab", "change_tab", "Change current tab")
-        ]
+        ("k", "change_tab", "Change tab"),
+    ]
+    CSS_PATH = "grid_layout.tcss"
 
     argv = sys.argv
     simulation = Simulation()
@@ -30,9 +28,67 @@ class FlyInApp(App):
     def compose(self) -> ComposeResult:
         """Creates child widgets for the app."""
 
-        yield Header()
-        yield VisualOutput()
+        yield Header(icon="boo!")
         yield Footer()
+
+
+    def on_mount(self) -> None:
+        self.title = "✦ │  F l y - i n │ ✦"
+        self.push_screen(MainScreen())
+        self.push_screen(WarningScreen())
+ 
+    def get_tabs_widget(self):
+        """Finds the internal Tabs widget (ContentTabs)."""
+        main_screen = self.screen
+        tabbed_content = main_screen.tabbed_content
+        return tabbed_content.query_one(ContentTabs)
+
+    def action_change_tab(self) -> None:
+        self.get_tabs_widget().action_next_tab()
+
+
+class WarningScreen(Screen):
+    TITLE = """
+▗▖ ▗▖   ▗▄▖   ▗▄▄▖   ▗▖  ▗▖  ▗▄▄▄▖  ▗▖  ▗▖   ▗▄▄▖
+▐▌ ▐▌  ▐▌ ▐▌  ▐▌ ▐▌  ▐▛▚▖▐▌    █    ▐▛▚▖▐▌  ▐▌   
+▐▌ ▐▌  ▐▛▀▜▌  ▐▛▀▚▖  ▐▌ ▝▜▌    █    ▐▌ ▝▜▌  ▐▌▝▜▌
+▐▙█▟▌  ▐▌ ▐▌  ▐▌ ▐▌  ▐▌  ▐▌  ▗▄█▄▖  ▐▌  ▐▌  ▝▚▄▞▘
+    """
+    def compose(self) -> ComposeResult:
+        yield Container(Static("ⓘ", id="left-icon"), Static(
+                        "[bold]About Connections... [/]\nIn the Visual Output tab "
+                        "connections are represented by "
+                        "lines, but they DO NOT represent faithfully the actual "
+                        "connections stated in the map.txt file.\nThey're only supposed "
+                        "to serve as visual aid. For checking the actual connections, go to "
+                        "the Textual Output tab in the next screen.\n\n"
+                        "[bold]Terminal sizing...[/]\nThis application runs in your "
+                        "terminal emulator, meaning you'll have to zoom in and out "
+                        "manually with 'ctrl' + 'shift' + '+' and 'ctrl' + '-'.\n"
+                        "These shortcuts may very depending on your terminal emulator."
+                        "\n\n[blink]Press any key to continue[/]",
+                        id="warning-text"), Static(self.TITLE, id="title"),
+                         Static("ⓘ", id="right-icon"),
+                        id="warning-container")
+
+    async def on_key(self) -> None:
+        self.skip_warning()
+
+    def skip_warning(self) -> None:
+        self.app.pop_screen()
+
+
+class MainScreen(Screen):
+
+    def compose(self) -> ComposeResult:
+        yield Header(icon="boo!")
+        yield Footer()
+        self.tabbed_content = TabbedContent(initial="visual_tab")
+        with self.tabbed_content:
+            with TabPane("Visual Output", id="visual_tab"):
+                yield VisualOutput()
+            with TabPane("Textual Output", id="textual_tab"):
+                yield TextualOutput()
 
 
 class ZoneWidget(Container):
@@ -42,10 +98,25 @@ class ZoneWidget(Container):
         self.zone = zone
 
     app = getters.app(FlyInApp)
+
     def compose(self) -> ComposeResult:
-        yield Button("", id="ZoneButton")
+        yield Static("", id="Zone")
         yield Label(self.zone.name, id="ZoneLabel")
 
+    def render(self) -> str: ...
+    """
+    If zone.drones_in changes, render the new value of
+    drones (as chracters) and refresh
+    """
+
+
+class ConnectionWidget(Static):
+    def __init__(self, connection: Connection, **kwargs) -> None:
+        super().__init__(**kwargs)
+        self.connection = connection
+
+    def compose(self) -> ComposeResult:
+        yield Static(self.connection.char)
 
 class Map(Container):
     app = getters.app(FlyInApp)
@@ -59,18 +130,22 @@ class Map(Container):
                 zone = simulation.grid[y - simulation.y_offset][x - simulation.x_offset]
                 if isinstance(zone, Zone):
                     zones_to_mount.append(ZoneWidget(id=zone.id, zone=zone))
+                elif isinstance(zone, Connection):
+                    zones_to_mount.append(Static(zone.char, classes="connection"))
                 else:
                     zones_to_mount.append(Static())
         self.mount_all(zones_to_mount)
 
 
 class VisualOutput(Widget):
+    BINDINGS = [
+        ("a", "previous_turn", "Shows previous turn"),
+        ("d", "next_turn", "Shows next turn"),
+        ("p", "start_or_pause", "Starts/pauses the animation"),
+        ]
+
     def compose(self) -> ComposeResult:
-        yield Tabs(
-                Tab("Visual Output", id="visual_tab"),
-                Tab("Textual Output", id="textual_tab")
-                )
-        yield Map()
+        yield ScrollableContainer(Map())
 
     def action_previous_turn(self) -> None: ...
     """Action method to show the previous simulation turn."""
@@ -85,4 +160,4 @@ class VisualOutput(Widget):
     """Action method to change simulation colorscheme"""
 
 
-class TextualOutput(): ...
+class TextualOutput(Widget): ...

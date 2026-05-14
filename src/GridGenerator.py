@@ -146,6 +146,119 @@ class GridGenerator:
                 return zone
         return 0
 
+    @staticmethod
+    def fill_n_graph(
+            n_graph: list[list[Zone | Connection | int]],
+            height: int, width: int
+            ) -> list[list[Zone | Connection | int]]:
+        new_height: int = height + (height - 1)
+        new_width: int = width + (width - 1)
+        for _ in range(new_height):
+            row = []
+            for _ in range(new_width):
+                row.append(0)
+            n_graph.append(row)
+        return n_graph
+
+    @staticmethod
+    def check_connections(
+            zone: Zone, connection_list: list[Connection]
+            ) -> tuple[list[Connection], list[int]]:
+        directions: list[tuple[int, int]] = [
+                (-1, 1), # acima frente
+                (0, 1),   # frente
+                (1, 0),   # abaixo
+                (1, 1)    # abaixo frente
+                ]
+        connection_directions: list[int] = []
+        object_list: list[Connection] = []
+        for item in connection_list:
+            if item.previous_zone == zone:
+                neighbour_pos = item.next_zone.pos
+            elif item.next_zone == zone:
+                neighbour_pos = item.previous_zone.pos
+            else:
+                continue
+            zone_pos = zone.pos
+            y = zone_pos[0]
+            x = zone_pos[1]
+            direction = 1
+            for dy, dx in directions:
+                ny = y + dy
+                nx = x + dx
+                if (ny, nx) == neighbour_pos:
+                    item.grid_pos = neighbour_pos
+                    object_list.append(item)
+                    connection_directions.append(direction)
+                direction += 1
+        return (object_list, connection_directions)
+                
+    @staticmethod
+    def add_connections(
+            graph: list[list[Zone | int]],
+            width: int, height: int,
+            connections: list[Connection]
+                    ) -> list[list[Zone | Connection | int]]:
+        n_graph: list[list[Zone | Connection | int]] = []
+        n_graph = GridGenerator.fill_n_graph(n_graph, height, width)
+        new_width = width + (width - 1)
+        new_height = height + (height - 1)
+        for y in range(height):
+            for x in range(width):
+                zone = graph[y][x]
+                ny = 2 * y
+                nx = 2 * x
+                if isinstance(zone, Zone):
+                    n_graph[ny][nx] = zone
+                    zone.grid_pos = (ny, nx)
+                    # this will return a list of all connection positions
+                    connection_list, directions = GridGenerator.check_connections(
+                            zone,
+                            connections
+                            )
+                    for connection, direction in zip(connection_list, directions):
+                        if direction == 1:
+                            dy, dx = -1, 1
+                            check: bool = False
+                            try:
+                                    check = True
+                            except:
+                                pass
+                            if check is True:
+                                continue
+                            connection.char = "  ┌──\n│\n│"
+                        elif direction == 2:
+                            dy, dx = 0, 1
+                            connection.char = "───────"
+                        elif direction == 3:
+                            dy, dx = 1, 0
+                            connection.char = "  │\n  │\n  │"
+                        elif direction == 4:
+                            dy, dx = 1, 1
+                            check: bool = False
+                            try:
+                                    check = True
+                            except:
+                                pass
+                            if check is True:
+                                continue
+                            connection.char = " │\n│\n  └──"
+                        else:
+                            raise ValueError("ERROR: Wrong math used in GridGenerator.add_connections()")
+                        target_ny = ny + dy
+                        target_nx = nx + dx
+                        if 0 <= target_ny < new_height and 0 <= target_nx < new_width:
+                            n_graph[target_ny][target_nx] = connection
+                elif isinstance(zone, int):
+                    n_graph[ny][nx] = 0
+        return n_graph
+
+# diretamente a frente
+# diretamente em baixo
+# diretamente em cima
+# em cima  a frente
+# em baixo a frente
+
     def generate_graph(self) -> dict[str, Any]:
         """
         Generates the graph to be later traversed by the
@@ -175,5 +288,6 @@ class GridGenerator:
                 zone = GridGenerator.decide_zone(y, x, y_offset,
                                                   x_offset, self.hubs)
                 graph[y][x] = zone
-        return dict(grid=graph, width=width, height=height,
+        n_graph = GridGenerator.add_connections(graph, width, height, self.connections)
+        return dict(grid=n_graph, width=width * 2 -1, height=height * 2 - 1,
                     x_offset=x_offset, y_offset=y_offset)
