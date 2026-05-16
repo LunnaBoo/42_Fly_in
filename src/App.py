@@ -103,12 +103,6 @@ class ZoneWidget(Container):
         yield Static("", id="Zone")
         yield Label(self.zone.name, id="ZoneLabel")
 
-    def render(self) -> str: ...
-    """
-    If zone.drones_in changes, render the new value of
-    drones (as chracters) and refresh
-    """
-
 
 class ConnectionWidget(Static):
     def __init__(self, connection: Connection, **kwargs) -> None:
