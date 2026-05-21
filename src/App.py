@@ -7,6 +7,7 @@ from textual.containers import Container, ScrollableContainer, Center
 from textual.screen import Screen
 from textual.reactive import reactive
 from textual.events import Key
+from textual.color import Color, ColorParseError
 from textual import getters, events
 from src.Simulation import Simulation
 from src.GraphLogic import Zone, Connection
@@ -91,6 +92,32 @@ class MainScreen(Screen):
                 yield TextualOutput()
 
 
+class ZoneBlock(Static):
+    def __init__(self, zone: Zone, **kwargs) -> None:
+        super().__init__(**kwargs)
+        self.zone = zone
+
+    def on_mount(self) -> None:
+        if self.zone.zone_type == "normal":
+            self.styles.background = "#d03791"
+        elif self.zone.zone_type == "restricted":
+            self.styles.background = "white"
+
+    def validate_color(self, zone: Zone) -> None:
+        try:
+            Color.parse(zone.color)
+        except ColorParseError:
+            exit(f"ERROR: Color '{zone.color}' selected for hub '{zone.name}' isn't supported.")
+
+    def change_color(self, value: str) -> None:
+        if self.zone.color and value == "default":
+            self.validate_color(self.zone)
+            self.styles.background = self.zone.color
+        else:
+            self.styles.background = None
+            self.on_mount()
+
+
 class ZoneWidget(Container):
     """Must add tooltip popup on click"""
     def __init__(self, zone: Zone, **kwargs) -> None:
@@ -100,7 +127,7 @@ class ZoneWidget(Container):
     app = getters.app(FlyInApp)
 
     def compose(self) -> ComposeResult:
-        yield Static("", id="Zone")
+        yield ZoneBlock(self.zone)
         yield Label(self.zone.name, id="ZoneLabel")
 
 
@@ -136,7 +163,10 @@ class VisualOutput(Widget):
         ("a", "previous_turn", "Shows previous turn"),
         ("d", "next_turn", "Shows next turn"),
         ("p", "start_or_pause", "Starts/pauses the animation"),
+        ("c", "change_colorscheme", "Changes zone colorscheme")
         ]
+
+    current_colorscheme = reactive("custom")
 
     def compose(self) -> ComposeResult:
         yield ScrollableContainer(Map())
@@ -150,8 +180,15 @@ class VisualOutput(Widget):
     def action_start_or_pause(self) -> None: ...
     """Action method to start or pause the animation"""
 
-    def action_change_colorscheme(self) -> None: ...
-    """Action method to change simulation colorscheme"""
+    def action_change_colorscheme(self) -> None:
+        if self.current_colorscheme == "default":
+            self.current_colorscheme = "custom"
+        else:
+            self.current_colorscheme = "default"
+        zones = self.query(ZoneBlock)
+        for zone in zones:
+            zone.change_color(self.current_colorscheme)
+            zone.refresh()
 
 
 class TextualOutput(Widget): ...

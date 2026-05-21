@@ -129,7 +129,7 @@ ZoneWidget {
 	text-align: center;
 }
 
-#Zone {
+ZoneBlock {
 	box-sizing: content-box;
 	keyline: thin white;
 	background: #d03791;
