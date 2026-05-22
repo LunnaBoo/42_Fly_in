@@ -1,8 +1,5 @@
-from src.Simulation import Simulation
 from src.App import FlyInApp
 import sys
-from src.GraphLogic import Zone
-from src.Simulation import Simulation
 
 
 if __name__ == "__main__":

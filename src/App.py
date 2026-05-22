@@ -1,14 +1,13 @@
 from textual.app import App, ComposeResult
-from textual.css.types import AlignHorizontal
-from textual.widgets import Tabs, Footer, Header, Static, Button, Label, TabPane, TabbedContent
+from textual.widgets import (Footer, Header, Static,
+                             Label, TabPane, TabbedContent)
 from textual.widgets._tabbed_content import ContentTabs
 from textual.widget import Widget
-from textual.containers import Container, ScrollableContainer, Center
+from textual.containers import Container, ScrollableContainer
 from textual.screen import Screen
 from textual.reactive import reactive
-from textual.events import Key
 from textual.color import Color, ColorParseError
-from textual import getters, events
+from textual import getters
 from src.Simulation import Simulation
 from src.GraphLogic import Zone, Connection
 import sys
@@ -32,12 +31,11 @@ class FlyInApp(App):
         yield Header(icon="boo!")
         yield Footer()
 
-
     def on_mount(self) -> None:
         self.title = "✦ │  F l y - i n │ ✦"
         self.push_screen(MainScreen())
         self.push_screen(WarningScreen())
- 
+
     def get_tabs_widget(self):
         """Finds the internal Tabs widget (ContentTabs)."""
         main_screen = self.screen
@@ -51,25 +49,33 @@ class FlyInApp(App):
 class WarningScreen(Screen):
     TITLE = """
 ▗▖ ▗▖   ▗▄▖   ▗▄▄▖   ▗▖  ▗▖  ▗▄▄▄▖  ▗▖  ▗▖   ▗▄▄▖
-▐▌ ▐▌  ▐▌ ▐▌  ▐▌ ▐▌  ▐▛▚▖▐▌    █    ▐▛▚▖▐▌  ▐▌   
+▐▌ ▐▌  ▐▌ ▐▌  ▐▌ ▐▌  ▐▛▚▖▐▌    █    ▐▛▚▖▐▌  ▐▌
 ▐▌ ▐▌  ▐▛▀▜▌  ▐▛▀▚▖  ▐▌ ▝▜▌    █    ▐▌ ▝▜▌  ▐▌▝▜▌
 ▐▙█▟▌  ▐▌ ▐▌  ▐▌ ▐▌  ▐▌  ▐▌  ▗▄█▄▖  ▐▌  ▐▌  ▝▚▄▞▘
     """
+
     def compose(self) -> ComposeResult:
         yield Container(Static("ⓘ", id="left-icon"), Static(
-                        "[bold]About Connections... [/]\nIn the Visual Output tab "
+                        "[bold]About Connections... [/]\n"
+                        "In the Visual Output tab "
                         "connections are represented by "
-                        "lines, but they DO NOT represent faithfully the actual "
-                        "connections stated in the map.txt file.\nThey're only supposed "
-                        "to serve as visual aid. For checking the actual connections, go to "
+                        "lines, but they DO NOT represent faithfully"
+                        " the actual "
+                        "connections stated in the map.txt file."
+                        "\nThey're only supposed "
+                        "to serve as visual aid. For checking the actual "
+                        "connections, go to "
                         "the Textual Output tab in the next screen.\n\n"
-                        "[bold]Terminal sizing...[/]\nThis application runs in your "
-                        "terminal emulator, meaning you'll have to zoom in and out "
-                        "manually with 'ctrl' + 'shift' + '+' and 'ctrl' + '-'.\n"
-                        "These shortcuts may very depending on your terminal emulator."
+                        "[bold]Terminal sizing...[/]\nThis application runs "
+                        "in your "
+                        "terminal emulator, meaning you'll have to zoom in"
+                        " and out "
+                        "manually.\n"
+                        "Resizing shortcuts may very depending on your "
+                        "terminal emulator."
                         "\n\n[blink]Press any key to continue[/]",
                         id="warning-text"), Static(self.TITLE, id="title"),
-                         Static("ⓘ", id="right-icon"),
+                        Static("ⓘ", id="right-icon"),
                         id="warning-container")
 
     async def on_key(self) -> None:
@@ -101,13 +107,18 @@ class ZoneBlock(Static):
         if self.zone.zone_type == "normal":
             self.styles.background = "#d03791"
         elif self.zone.zone_type == "restricted":
-            self.styles.background = "white"
+            self.styles.background = "#87286a"
+        elif self.zone.zone_type == "blocked":
+            self.styles.background = "#260d34"
+        elif self.zone.zone_type == "priority":
+            self.styles.background = "#fe6c90"
 
     def validate_color(self, zone: Zone) -> None:
         try:
             Color.parse(zone.color)
         except ColorParseError:
-            exit(f"ERROR: Color '{zone.color}' selected for hub '{zone.name}' isn't supported.")
+            exit(f"ERROR: Color '{zone.color}' selected for hub "
+                 "'{zone.name}' isn't supported.")
 
     def change_color(self, value: str) -> None:
         if self.zone.color and value == "default":
@@ -139,8 +150,10 @@ class ConnectionWidget(Static):
     def compose(self) -> ComposeResult:
         yield Static(self.connection.char)
 
+
 class Map(Container):
     app = getters.app(FlyInApp)
+
     def on_mount(self) -> None:
         simulation = self.app.simulation
         self.styles.grid_size_rows = simulation.grid_height
@@ -148,11 +161,13 @@ class Map(Container):
         zones_to_mount = []
         for y in range(simulation.grid_height):
             for x in range(simulation.grid_width):
-                zone = simulation.grid[y - simulation.y_offset][x - simulation.x_offset]
+                zone = simulation.grid[
+                        y - simulation.y_offset][x - simulation.x_offset]
                 if isinstance(zone, Zone):
                     zones_to_mount.append(ZoneWidget(id=zone.id, zone=zone))
                 elif isinstance(zone, Connection):
-                    zones_to_mount.append(Static(zone.char, classes="connection"))
+                    zones_to_mount.append(Static(zone.char,
+                                                 classes="connection"))
                 else:
                     zones_to_mount.append(Static())
         self.mount_all(zones_to_mount)
