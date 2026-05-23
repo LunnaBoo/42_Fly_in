@@ -165,7 +165,7 @@ class GridGenerator:
             zone: Zone, connection_list: list[Connection]
             ) -> tuple[list[Connection], list[int]]:
         directions: list[tuple[int, int]] = [
-                (-1, 1), # acima frente
+                (-1, 1),  # acima frente
                 (0, 1),   # frente
                 (1, 0),   # abaixo
                 (1, 1)    # abaixo frente
@@ -192,7 +192,7 @@ class GridGenerator:
                     connection_directions.append(direction)
                 direction += 1
         return (object_list, connection_directions)
-                
+
     @staticmethod
     def add_connections(
             graph: list[list[Zone | int]],
@@ -212,17 +212,20 @@ class GridGenerator:
                     n_graph[ny][nx] = zone
                     zone.grid_pos = (ny, nx)
                     # this will return a list of all connection positions
-                    connection_list, directions = GridGenerator.check_connections(
-                            zone,
-                            connections
+                    connection_list, directions = (
+                            GridGenerator.check_connections(
+                                zone,
+                                connections
                             )
-                    for connection, direction in zip(connection_list, directions):
+                        )
+                    for connection, direction in zip(connection_list,
+                                                     directions):
                         if direction == 1:
                             dy, dx = -1, 1
                             check: bool = False
                             try:
-                                    check = True
-                            except:
+                                check = True
+                            except Exception:
                                 pass
                             if check is True:
                                 continue
@@ -237,17 +240,20 @@ class GridGenerator:
                             dy, dx = 1, 1
                             check: bool = False
                             try:
-                                    check = True
-                            except:
+                                check = True
+                            except Exception:
                                 pass
                             if check is True:
                                 continue
                             connection.char = " │\n│\n  └──"
                         else:
-                            raise ValueError("ERROR: Wrong math used in GridGenerator.add_connections()")
+                            raise ValueError("ERROR: Wrong math used "
+                                             "in GridGenerator.add_"
+                                             "connections()")
                         target_ny = ny + dy
                         target_nx = nx + dx
-                        if 0 <= target_ny < new_height and 0 <= target_nx < new_width:
+                        if (0 <= target_ny < new_height and
+                           0 <= target_nx < new_width):
                             n_graph[target_ny][target_nx] = connection
                 elif isinstance(zone, int):
                     n_graph[ny][nx] = 0
@@ -286,8 +292,9 @@ class GridGenerator:
         for y in range(height):
             for x in range(width):
                 zone = GridGenerator.decide_zone(y, x, y_offset,
-                                                  x_offset, self.hubs)
+                                                 x_offset, self.hubs)
                 graph[y][x] = zone
-        n_graph = GridGenerator.add_connections(graph, width, height, self.connections)
-        return dict(grid=n_graph, width=width * 2 -1, height=height * 2 - 1,
+        n_graph = GridGenerator.add_connections(graph, width,
+                                                height, self.connections)
+        return dict(grid=n_graph, width=width * 2 - 1, height=height * 2 - 1,
                     x_offset=x_offset, y_offset=y_offset)

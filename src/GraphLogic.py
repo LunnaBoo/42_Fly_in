@@ -3,6 +3,7 @@ from typing import Any
 
 class Zone:
     _all_zones: list["Zone"] = []
+
     def __init__(self, name: str, zone_type: str,
                  pos: tuple[int, int],
                  is_start: bool = False,
@@ -24,6 +25,7 @@ class Zone:
 
 class Connection:
     _all_connections: list["Connection"] = []
+
     def __init__(self, name: str,
                  previous_zone: Zone,
                  next_zone: Zone,
@@ -42,7 +44,7 @@ class GraphGenerator:
     @staticmethod
     def generate_graph(map: dict[str, Any]) -> dict[Zone, list[Connection]]:
         """
-        Generates a graph based on it's class attributes 
+        Generates a graph based on it's class attributes
         represented by an adjacency list.
 
         Returns
@@ -61,7 +63,8 @@ class GraphGenerator:
         for zone in zones:
             zone_connections = []
             for connection in connections:
-                if connection.previous_zone == zone or connection.next_zone == zone:
+                if (connection.previous_zone == zone or
+                   connection.next_zone == zone):
                     zone_connections.append(connection)
             graph[zone] = zone_connections
         return graph

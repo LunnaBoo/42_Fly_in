@@ -7,7 +7,7 @@ import sys
 
 
 class Simulation:
-    def __init__(self) -> None:    
+    def __init__(self) -> None:
         self.graph: dict[Zone, list[Connection]] = {}
         self.zones: list[Zone] = []
         self.connections: list[Connection] = []

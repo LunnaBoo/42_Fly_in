@@ -22,28 +22,34 @@ class MapParser:
                 if not line or line.startswith("#"):
                     continue
                 if ":" not in line:
-                    raise ValueError(f"ERROR: Invalid formatting in map file at line {i}.")
+                    raise ValueError("ERROR: Invalid formatting in map "
+                                     f"file at line {i}.")
                 if "nb_drones" not in data and "nb_drones" not in line:
-                    raise ValueError("ERROR: In the map file nb_drones must be "
-                                     "defined in the first line after empty or "
-                                     "comment lines.")
+                    raise ValueError("ERROR: In the map file nb_drones must "
+                                     "be defined in the first line after "
+                                     "empty or comment lines.")
                 parts = line.split(":", 1)
                 key = parts[0].strip()
                 value = parts[1].strip()
 
                 if key not in cls.valid_keys:
-                    raise ValueError(f"ERROR: Invalid key in map file at line {i}.")
+                    raise ValueError("ERROR: Invalid key in map "
+                                     f"file at line {i}.")
                 if key != "hub" and key != "connection":
                     if key in data:
-                        raise ValueError(f"ERROR: Duplicate key in map file at line {i}.")
+                        raise ValueError("ERROR: Duplicate key in map "
+                                         f"file at line {i}.")
                 if not value:
-                    raise ValueError(f"ERROR: Empty value in map file at line {i}.")
+                    raise ValueError("ERROR: Empty value in map "
+                                     f"file at line {i}.")
                 if key == "nb_drones":
                     try:
                         data["nb_drones"] = MapParser.__parse_nb_drones(value)
                     except Exception:
-                        raise ValueError(f"ERROR: Invalid value in map file at line {i}. "
-                                         "Only positive numbers are allowed for nb_drones.")
+                        raise ValueError("ERROR: Invalid value in map "
+                                         f"file at line {i}. "
+                                         "Only positive numbers are allowed "
+                                         "for nb_drones.")
                 elif key == "hub":
                     try:
                         data["hub"] = MapParser.__parse_hub(key, value)
@@ -54,7 +60,8 @@ class MapParser:
                     try:
                         data["start_hub"] = MapParser.__parse_hub(key, value)
                     except Exception:
-                        raise ValueError("ERROR: Invalid start_hub in map file "
+                        raise ValueError("ERROR: Invalid start_hub in "
+                                         "map file "
                                          f"at line {i}.")
                 elif key == "end_hub":
                     try:
@@ -64,13 +71,15 @@ class MapParser:
                                          f"at line {i}.")
                 elif key == "connection":
                     try:
-                        data["connection"] = MapParser.__parse_connection(value,
-                                                                          data["hub"])
+                        data["connection"] = MapParser.__parse_connection(
+                                value, data["hub"]
+                                )
                     except Exception:
-                        raise ValueError("ERROR: Invalid connection in map file "
-                                         f"at line {i}.")
+                        raise ValueError("ERROR: Invalid connection in map "
+                                         f"file at line {i}.")
                 else:
-                    raise ValueError(f"ERROR: Unknown key in map file at line {i}")
+                    raise ValueError("ERROR: Unknown key in map file "
+                                     f"at line {i}")
         return MapParser.__validate(data)
 
     @staticmethod
@@ -160,7 +169,8 @@ class MapParser:
                 if len(connection_list) > 1:
                     connection_prev = connection.previous_zone.name
                     connection_next = connection.next_zone.name
-                    connection_check = sorted([connection_prev, connection_next])
+                    connection_check = sorted([connection_prev,
+                                               connection_next])
                     for item in connection_list:
                         if item == connection:
                             continue
@@ -182,7 +192,8 @@ class MapParser:
         name_list = []
         for item in zone_list:
             if item.name in name_list:
-                raise ValueError("ERROR: Hubs with identical names in map file.")
+                raise ValueError("ERROR: Hubs with identical names in map "
+                                 "file.")
             if "-" in item.name or " " in item.name:
                 raise ValueError("ERROR: Invalid hub name in map file")
             name_list.append(item.name)
