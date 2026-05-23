@@ -1,4 +1,5 @@
 from typing import Any
+import heapq
 
 
 class Zone:
@@ -40,7 +41,7 @@ class Connection:
         Connection._all_connections.append(self)
 
 
-class GraphGenerator:
+class GraphGenerator0:
     @staticmethod
     def generate_graph(map: dict[str, Any]) -> dict[Zone, list[Connection]]:
         """
@@ -68,3 +69,13 @@ class GraphGenerator:
                     zone_connections.append(connection)
             graph[zone] = zone_connections
         return graph
+
+
+
+    @staticmethod
+    def validate_graph(map: dict[str, Any]) -> None:
+        zones = map["hub"]._all_zones
+        connections = map["connection"]._all_connections
+        nb_drones = map["nb_drones"]
+        if len(zones) < 1 or len(connections) < 1 or nb_drones < 1:
+            raise ValueError("ERROR: Map file is incomplete.")

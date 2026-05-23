@@ -21,4 +21,21 @@ class Drone:
 
     def move(self) -> str: ...
 
-    def path_finder(self) -> list[Zone]: ...
+    def path_finder(self) -> list[Zone]:
+        """
+        1. While pq
+        2. Check if Zone is visited, continue if it is
+        3. If not, add Zone to path and mark it
+        4. If Zone is Goal, return distance and path
+        5. For Connection in Zone
+        6. If Connection.next_zone is visited, continue
+        7. Set Connection.next_zone dist to be equal to dist + it's weight
+        8. If new_dist is lesser than best[Connection.next_zone], which stores
+           smallest weight to get to that zone:
+            1. Declare best[Connection.next_zone] to equal new_dist
+            2. heappush (new_dist, Connection.next_zone, path)
+
+        9. If while pq exits return float("inf"), meaning goal is unreachable
+        """
+
+        priority_queue = [(0, )]
