@@ -41,7 +41,7 @@ class Connection:
         Connection._all_connections.append(self)
 
 
-class GraphGenerator0:
+class GraphGenerator:
     @staticmethod
     def generate_graph(map: dict[str, Any]) -> dict[Zone, list[Connection]]:
         """
