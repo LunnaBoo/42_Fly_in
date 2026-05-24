@@ -21,7 +21,8 @@ class Drone:
 
     def move(self) -> str: ...
 
-    def path_finder(self) -> list[Zone]:
+    def path_finder(self, graph: dict[Zone, list[Connection]],
+                    start: Zone, goal: Zone) -> (int, list[Zone]) | float:
         """
         1. While pq
         2. Check if Zone is visited, continue if it is
@@ -38,4 +39,32 @@ class Drone:
         9. If while pq exits return float("inf"), meaning goal is unreachable
         """
 
-        priority_queue = [(0, )]
+        priority_queue: list = [(0, start, [])]
+        heapq.heapify(priority_queue)
+        best: dict = {start: 0}
+
+        while pq:
+            dist, zone, path = priority_queue.pop()
+            if zone.visited:
+                continue
+            path.append(zone)
+            zone.visited = True
+            if zone == goal:
+                return dist, path
+            for connection in zone.connections:
+                next_zone = connection.next_zone
+                # could be interesting to also take previous_zone into consideration
+                #in cases where backtracking could be useful
+                if next_zone.visited:
+                    continue
+                weight: float = 1
+                if next_zone.type == "restricted":
+                    weight = 2
+                elif next_zone.type == "priority":
+                    weight = 0.5
+                new_dist = dist + weight
+                if new_dist < get(best[next_zone], float("inf"):
+                    best[next_zone] = new_dist
+                    heapq.heappush(pq, new_dist,
+                                   next_zone, path)
+        return float("inf)
