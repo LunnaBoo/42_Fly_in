@@ -239,30 +239,16 @@ class Grid:
                                                      directions):
                         if direction == 1:
                             dy, dx = -1, 1
-                            check: bool = False
-                            try:
-                                check = True
-                            except Exception:
-                                pass
-                            if check is True:
-                                continue
-                            connection.char = "  ┌──\n│\n│"
+                            connection.char = "    ╱\n  ╱\n╱"
                         elif direction == 2:
                             dy, dx = 0, 1
-                            connection.char = "───────"
+                            connection.char = "\n\n───────"
                         elif direction == 3:
                             dy, dx = 1, 0
-                            connection.char = "  │\n  │\n  │"
+                            connection.char = "    │\n    │\n    │"
                         elif direction == 4:
                             dy, dx = 1, 1
-                            check: bool = False
-                            try:
-                                check = True
-                            except Exception:
-                                pass
-                            if check is True:
-                                continue
-                            connection.char = " │\n│\n  └──"
+                            connection.char = " ╲\n  ╲\n    ╲\n"
                         else:
                             raise ValueError("ERROR: Wrong math used "
                                              "in GridGenerator.add_"

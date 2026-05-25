@@ -156,21 +156,22 @@ class Map(Container):
 
     def on_mount(self) -> None:
         grid = self.app.simulation.grid
-        self.styles.grid_size_rows = grid.height
-        self.styles.grid_size_columns = grid.width
-        zones_to_mount = []
-        for y in range(grid.height):
-            for x in range(grid.width):
-                zone = grid.matrix[
-                        y - grid.y_offset][x - grid.x_offset]
-                if isinstance(zone, Zone):
-                    zones_to_mount.append(ZoneWidget(id=zone.id, zone=zone))
-                elif isinstance(zone, Connection):
-                    zones_to_mount.append(Static(zone.char,
-                                                 classes="connection"))
-                else:
-                    zones_to_mount.append(Static())
-        self.mount_all(zones_to_mount)
+        if grid:
+            self.styles.grid_size_rows = grid.height
+            self.styles.grid_size_columns = grid.width
+            zones_to_mount = []
+            for y in range(grid.height):
+                for x in range(grid.width):
+                    zone = grid.matrix[
+                            y - grid.y_offset][x - grid.x_offset]
+                    if isinstance(zone, Zone):
+                        zones_to_mount.append(ZoneWidget(id=zone.id, zone=zone))
+                    elif isinstance(zone, Connection):
+                        zones_to_mount.append(Static(zone.char,
+                                                     classes="connection"))
+                    else:
+                        zones_to_mount.append(Static())
+            self.mount_all(zones_to_mount)
 
 
 class VisualOutput(Widget):
