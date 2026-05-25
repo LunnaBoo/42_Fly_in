@@ -209,7 +209,7 @@ class Grid:
 
     @staticmethod
     def add_connections(
-            graph: list[list[Zone | int]],
+            grid: list[list[Zone | int]],
             width: int, height: int,
             connections: list[Connection]
                     ) -> list[list[Zone | Connection | int]]:
@@ -222,7 +222,7 @@ class Grid:
         new_height = height + (height - 1)
         for y in range(height):
             for x in range(width):
-                zone = graph[y][x]
+                zone = grid[y][x]
                 ny = 2 * y
                 nx = 2 * x
                 if isinstance(zone, Zone):
