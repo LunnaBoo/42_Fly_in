@@ -1,8 +1,11 @@
 from typing import Any
-import heapq
+from src.Drone import Drone
 
 
 class Zone:
+    """
+
+    """
     _all_zones: list["Zone"] = []
 
     def __init__(self, name: str, zone_type: str,
@@ -13,18 +16,23 @@ class Zone:
                  color: str | None = None) -> None:
         self.id: str = "Z" + str(len(Zone._all_zones) + 1)
         self.name = name
-        self.zone_type = zone_type
+        self.kind = zone_type
         self.pos = pos
+        self.visited: bool = False
         self.is_start = is_start
         self.is_end = is_end
         self.max_drones = max_drones
         self.color = color
+        self.connections: list[Connection] = []
         self.drones_in: list = []
         self.grid_pos: tuple = (0, 0)
         Zone._all_zones.append(self)
 
 
 class Connection:
+    """
+
+    """
     _all_connections: list["Connection"] = []
 
     def __init__(self, name: str,
@@ -41,41 +49,45 @@ class Connection:
         Connection._all_connections.append(self)
 
 
-class GraphGenerator:
-    @staticmethod
-    def generate_graph(map: dict[str, Any]) -> dict[Zone, list[Connection]]:
-        """
-        Generates a graph based on it's class attributes
-        represented by an adjacency list.
+class Graph:
+    """
 
-        Returns
-        -------
-        dict[Zone, Connection | None]:
-            A dictionary with Zone objects as keys and a list of
-            Connection objects as values.
+    """
+    def __init__(self) -> None:
+        self.hubs: list[Zone] | None = None
+        self.connections: list[Connection] | None = None
+        self.nb_drones: int = 0
+        self.drones: list[Drone] | None = None
+        self.start_hub: Zone | None = None
+        self.end_hub: Zone | None = None
+
+    def graph_config(self, map: dict[str, Any]) -> None:
+        """
         """
 
         zones = map["hub"]._all_zones
         connections = map["connection"]._all_connections
         nb_drones = map["nb_drones"]
-        if len(zones) < 1 or len(connections) < 1 or nb_drones < 1:
-            raise ValueError
-        graph: dict[Zone, list[Connection]] = {}
+
+        self.hubs = zones
+        self.connections = connections
+        self.nb_drones = nb_drones
+        self.start_hub = map["start_hub"]
+        self.end_hub = map["end_hub"]
+
+        Graph.validate_graph(zones, connections, nb_drones)
         for zone in zones:
-            zone_connections = []
             for connection in connections:
                 if (connection.previous_zone == zone or
                    connection.next_zone == zone):
-                    zone_connections.append(connection)
-            graph[zone] = zone_connections
-        return graph
-
-
+                    zone.connections.append(connection)
 
     @staticmethod
-    def validate_graph(map: dict[str, Any]) -> None:
-        zones = map["hub"]._all_zones
-        connections = map["connection"]._all_connections
-        nb_drones = map["nb_drones"]
+    def validate_graph(zones: list[Zone],
+                       connections: list[Connection],
+                       nb_drones: int) -> None:
+        """
+
+        """
         if len(zones) < 1 or len(connections) < 1 or nb_drones < 1:
             raise ValueError("ERROR: Map file is incomplete.")

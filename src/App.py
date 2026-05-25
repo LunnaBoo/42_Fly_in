@@ -104,13 +104,13 @@ class ZoneBlock(Static):
         self.zone = zone
 
     def on_mount(self) -> None:
-        if self.zone.zone_type == "normal":
+        if self.zone.kind == "normal":
             self.styles.background = "#d03791"
-        elif self.zone.zone_type == "restricted":
+        elif self.zone.kind == "restricted":
             self.styles.background = "#87286a"
-        elif self.zone.zone_type == "blocked":
+        elif self.zone.kind == "blocked":
             self.styles.background = "#260d34"
-        elif self.zone.zone_type == "priority":
+        elif self.zone.kind == "priority":
             self.styles.background = "#fe6c90"
 
     def validate_color(self, zone: Zone) -> None:
@@ -118,7 +118,7 @@ class ZoneBlock(Static):
             Color.parse(zone.color)
         except ColorParseError:
             exit(f"ERROR: Color '{zone.color}' selected for hub "
-                 "'{zone.name}' isn't supported.")
+                 f"'{zone.name}' isn't supported.")
 
     def change_color(self, value: str) -> None:
         if self.zone.color and value == "default":
@@ -155,14 +155,14 @@ class Map(Container):
     app = getters.app(FlyInApp)
 
     def on_mount(self) -> None:
-        simulation = self.app.simulation
-        self.styles.grid_size_rows = simulation.grid_height
-        self.styles.grid_size_columns = simulation.grid_width
+        grid = self.app.simulation.grid
+        self.styles.grid_size_rows = grid.height
+        self.styles.grid_size_columns = grid.width
         zones_to_mount = []
-        for y in range(simulation.grid_height):
-            for x in range(simulation.grid_width):
-                zone = simulation.grid[
-                        y - simulation.y_offset][x - simulation.x_offset]
+        for y in range(grid.height):
+            for x in range(grid.width):
+                zone = grid.matrix[
+                        y - grid.y_offset][x - grid.x_offset]
                 if isinstance(zone, Zone):
                     zones_to_mount.append(ZoneWidget(id=zone.id, zone=zone))
                 elif isinstance(zone, Connection):

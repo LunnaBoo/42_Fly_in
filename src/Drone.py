@@ -1,4 +1,5 @@
 from src.GraphLogic import Zone, Connection
+import heapq
 
 
 class Drone:
@@ -10,19 +11,21 @@ class Drone:
         self.route: list[Zone] = []
         Drone._all_drones.append(self)
 
-    def act(self, graph: dict[Zone, list[Connection]]) -> str:
+    def act(self, graph: dict[Zone, list[Connection]],
+            start: Zone, goal: Zone) -> str:
         if not self.route:
-            route = self.path_finder()
+            route = self.path_finder(start, goal)
         movement: str = self.move()
         if not movement:
-            route = self.path_finder()
+            route = self.path_finder(start, goal)
         movement = self.move()
         return movement
 
     def move(self) -> str: ...
 
-    def path_finder(self, graph: dict[Zone, list[Connection]],
-                    start: Zone, goal: Zone) -> (int, list[Zone]) | float:
+    def path_finder(self,
+                    start: Zone,
+                    goal: Zone) -> tuple[int, list[Zone]] | float:
         """
         1. While pq
         2. Check if Zone is visited, continue if it is
@@ -43,28 +46,30 @@ class Drone:
         heapq.heapify(priority_queue)
         best: dict = {start: 0}
 
-        while pq:
+        while priority_queue:
             dist, zone, path = priority_queue.pop()
             if zone.visited:
                 continue
             path.append(zone)
             zone.visited = True
             if zone == goal:
-                return dist, path
+                return (dist, path)
             for connection in zone.connections:
                 next_zone = connection.next_zone
                 # could be interesting to also take previous_zone into consideration
-                #in cases where backtracking could be useful
+                # in cases where backtracking could be useful
                 if next_zone.visited:
                     continue
                 weight: float = 1
-                if next_zone.type == "restricted":
+                if next_zone.kind == "restricted":
                     weight = 2
-                elif next_zone.type == "priority":
+                elif next_zone.kind == "priority":
                     weight = 0.5
+                elif next_zone.kind == "blocked":
+                    weight = float("inf")
                 new_dist = dist + weight
-                if new_dist < get(best[next_zone], float("inf"):
+                if new_dist < best.get(next_zone, float("inf")):
                     best[next_zone] = new_dist
-                    heapq.heappush(pq, new_dist,
-                                   next_zone, path)
-        return float("inf)
+                    heapq.heappush(priority_queue, (new_dist,
+                                   next_zone, path))
+        return float("inf")

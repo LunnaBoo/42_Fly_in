@@ -2,13 +2,21 @@ from typing import Any
 from src.GraphLogic import Zone, Connection
 
 
-class GridGenerator:
+class Grid:
+    """
+
+    """
     def __init__(self, map: dict[str, Any]) -> None:
         self.nb_drones: int = map.get("nb_drones", -1)
         hub = map.get("hub", {})
         connection = map.get("connection", {})
         self.hubs: list[Zone] = hub._all_zones
         self.connections: list[Connection] = connection._all_connections
+        self.matrix: list[list[Zone | int | Connection]] | None = None
+        self.height: int = 0
+        self.width: int = 0
+        self.y_offset: int = 0
+        self.x_offset: int = 0
 
     @staticmethod
     def get_area(hubs: list[Zone]) -> dict[str, int]:
@@ -43,8 +51,8 @@ class GridGenerator:
                     x_min=x_min, y_min=y_min)
 
     @staticmethod
-    def fill_graph(
-            graph: list[list[Zone | int]],
+    def fill_grid(
+            grid: list[list[Zone | int]],
             height: int, width: int
             ) -> list[list[Zone | int]]:
         """
@@ -71,8 +79,8 @@ class GridGenerator:
             row = []
             for _ in range(width):
                 row.append(0)
-            graph.append(row)
-        return graph
+            grid.append(row)
+        return grid
 
     @staticmethod
     def get_offset(measures: dict[str, int]) -> tuple[int, int]:
@@ -147,23 +155,29 @@ class GridGenerator:
         return 0
 
     @staticmethod
-    def fill_n_graph(
-            n_graph: list[list[Zone | Connection | int]],
+    def fill_n_grid(
+            n_grid: list[list[Zone | Connection | int]],
             height: int, width: int
             ) -> list[list[Zone | Connection | int]]:
+        """
+
+        """
         new_height: int = height + (height - 1)
         new_width: int = width + (width - 1)
         for _ in range(new_height):
             row = []
             for _ in range(new_width):
                 row.append(0)
-            n_graph.append(row)
-        return n_graph
+            n_grid.append(row)
+        return n_grid
 
     @staticmethod
     def check_connections(
             zone: Zone, connection_list: list[Connection]
             ) -> tuple[list[Connection], list[int]]:
+        """
+
+        """
         directions: list[tuple[int, int]] = [
                 (-1, 1),  # acima frente
                 (0, 1),   # frente
@@ -199,8 +213,11 @@ class GridGenerator:
             width: int, height: int,
             connections: list[Connection]
                     ) -> list[list[Zone | Connection | int]]:
-        n_graph: list[list[Zone | Connection | int]] = []
-        n_graph = GridGenerator.fill_n_graph(n_graph, height, width)
+        """
+
+        """
+        n_grid: list[list[Zone | Connection | int]] = []
+        n_grid = Grid.fill_n_grid(n_grid, height, width)
         new_width = width + (width - 1)
         new_height = height + (height - 1)
         for y in range(height):
@@ -209,11 +226,11 @@ class GridGenerator:
                 ny = 2 * y
                 nx = 2 * x
                 if isinstance(zone, Zone):
-                    n_graph[ny][nx] = zone
+                    n_grid[ny][nx] = zone
                     zone.grid_pos = (ny, nx)
                     # this will return a list of all connection positions
                     connection_list, directions = (
-                            GridGenerator.check_connections(
+                            Grid.check_connections(
                                 zone,
                                 connections
                             )
@@ -254,10 +271,10 @@ class GridGenerator:
                         target_nx = nx + dx
                         if (0 <= target_ny < new_height and
                            0 <= target_nx < new_width):
-                            n_graph[target_ny][target_nx] = connection
+                            n_grid[target_ny][target_nx] = connection
                 elif isinstance(zone, int):
-                    n_graph[ny][nx] = 0
-        return n_graph
+                    n_grid[ny][nx] = 0
+        return n_grid
 
 # diretamente a frente
 # diretamente em baixo
@@ -265,7 +282,7 @@ class GridGenerator:
 # em cima  a frente
 # em baixo a frente
 
-    def generate_graph(self) -> dict[str, Any]:
+    def generate_grid(self) -> dict[str, Any]:
         """
         Generates the graph to be later traversed by the
         drones.
@@ -282,19 +299,24 @@ class GridGenerator:
             Zone object = actual zone.
         """
 
-        measures: dict[str, int] = GridGenerator.get_area(self.hubs)
+        measures: dict[str, int] = Grid.get_area(self.hubs)
         width: int = (measures["x_max"] - measures["x_min"]) + 1
         height: int = (measures["y_max"] - measures["y_min"]) + 1
 
-        graph: list[list[Zone | int]] = []
-        graph = GridGenerator.fill_graph(graph, height, width)
-        y_offset, x_offset = GridGenerator.get_offset(measures)
+        grid: list[list[Zone | int]] = []
+        grid = Grid.fill_grid(grid, height, width)
+        y_offset, x_offset = Grid.get_offset(measures)
         for y in range(height):
             for x in range(width):
-                zone = GridGenerator.decide_zone(y, x, y_offset,
+                zone = Grid.decide_zone(y, x, y_offset,
                                                  x_offset, self.hubs)
-                graph[y][x] = zone
-        n_graph = GridGenerator.add_connections(graph, width,
+                grid[y][x] = zone
+        n_grid = Grid.add_connections(grid, width,
                                                 height, self.connections)
-        return dict(grid=n_graph, width=width * 2 - 1, height=height * 2 - 1,
+        self.grid_matrix = n_grid
+        self.grid_height = height
+        self.grid_width = width
+        self.x_offset = x_offset
+        self.y_offest = y_offset
+        return dict(grid=n_grid, width=width * 2 - 1, height=height * 2 - 1,
                     x_offset=x_offset, y_offset=y_offset)

@@ -1,24 +1,17 @@
 from src.MapParser import MapParser
-from src.GraphLogic import Zone, Connection, GraphGenerator
+from src.GraphLogic import Graph
 from src.Drone import Drone
-from src.GridGenerator import GridGenerator
+from src.GridGenerator import Grid
 from typing import Any
 import sys
 
 
 class Simulation:
     def __init__(self) -> None:
-        self.graph: dict[Zone, list[Connection]] = {}
-        self.zones: list[Zone] = []
-        self.connections: list[Connection] = []
+        self.graph: Graph | None = None
+        self.grid: Grid | None = None
         self.drones: list[Drone] = []
-        self.nb_drones: int = 0
         self.output: str = ""
-        self.grid: list[list[Zone | int]] | None = None
-        self.grid_height: int = 0
-        self.grid_width: int = 0
-        self.y_offset: int = 0
-        self.x_offset: int = 0
 
     def configure(self, filename: str) -> None:
         """
@@ -33,8 +26,12 @@ class Simulation:
 
         try:
             map: dict[str, Any] = MapParser.parse_data(filename)
-            grid_gen = GridGenerator(map)
-            grid_data = grid_gen.generate_graph()
+            self.start_hub = map["start_hub"]
+            self.end_hub = map["end_hub"]
+            grid_gen = Grid(map)
+            grid_gen.generate_grid()
+            graph = Graph()
+            graph.graph_config(map)
         except FileNotFoundError as e:
             print(f"ERROR: Map file not found: {e}")
             sys.exit(1)
@@ -44,16 +41,9 @@ class Simulation:
         except Exception as e:
             print(e)
             sys.exit(1)
-        self.graph = GraphGenerator.generate_graph(map)
-        self.zones = map["hub"]._all_zones
-        self.connections = map["connection"]._all_connections
-        self.grid = grid_data["grid"]
-        self.grid_height = grid_data["height"]
-        self.grid_width = grid_data["width"]
-        self.x_offset = grid_data["x_offset"]
-        self.y_offest = grid_data["y_offset"]
-        self.nb_drones = map["nb_drones"]
-        for _ in range(self.nb_drones):
+        self.graph = graph
+        self.grid = grid_gen
+        for _ in range(graph.nb_drones):
             drone = Drone()
             self.drones = drone._all_drones
 
