@@ -1,7 +1,7 @@
 from src.MapParser import MapParser
 from src.GraphLogic import Graph
 from src.Drone import Drone
-from src.GridGenerator import Grid
+from src.Grid import Grid
 from typing import Any
 import sys
 
@@ -28,8 +28,8 @@ class Simulation:
             map: dict[str, Any] = MapParser.parse_data(filename)
             self.start_hub = map["start_hub"]
             self.end_hub = map["end_hub"]
-            grid_gen = Grid(map)
-            grid_gen.generate_grid()
+            self.grid = Grid(map)
+            self.grid.generate_grid()
             graph = Graph()
             graph.graph_config(map)
         except FileNotFoundError as e:
@@ -42,7 +42,6 @@ class Simulation:
             print(e)
             sys.exit(1)
         self.graph = graph
-        self.grid = grid_gen
         for _ in range(graph.nb_drones):
             drone = Drone()
             self.drones = drone._all_drones

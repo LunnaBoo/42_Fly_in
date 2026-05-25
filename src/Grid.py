@@ -313,9 +313,9 @@ class Grid:
                 grid[y][x] = zone
         n_grid = Grid.add_connections(grid, width,
                                                 height, self.connections)
-        self.grid_matrix = n_grid
-        self.grid_height = height
-        self.grid_width = width
+        self.matrix = n_grid
+        self.height = (height * 2) - 1
+        self.width = (width * 2) - 1
         self.x_offset = x_offset
         self.y_offest = y_offset
         return dict(grid=n_grid, width=width * 2 - 1, height=height * 2 - 1,

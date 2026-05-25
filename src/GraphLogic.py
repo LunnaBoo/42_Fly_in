@@ -1,5 +1,4 @@
 from typing import Any
-from src.Drone import Drone
 
 
 class Zone:
@@ -57,7 +56,7 @@ class Graph:
         self.hubs: list[Zone] | None = None
         self.connections: list[Connection] | None = None
         self.nb_drones: int = 0
-        self.drones: list[Drone] | None = None
+        self.drones: list["Drone"] | None = None
         self.start_hub: Zone | None = None
         self.end_hub: Zone | None = None
 
