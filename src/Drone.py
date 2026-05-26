@@ -8,24 +8,57 @@ class Drone:
     def __init__(self) -> None:
         self.id: str = "D" + str(len(Drone._all_drones) + 1)
         self.path: list[Zone] = []
-        self.route: list[Zone] = []
+        self.route: list[Zone] | float = []
         Drone._all_drones.append(self)
 
-    def act(self, graph: dict[Zone, list[Connection]],
-            start: Zone, goal: Zone) -> str:
+    def act(self, start: Zone, goal: Zone) -> str:
         if not self.route:
-            route = self.path_finder(start, goal)
-        movement: str = self.move()
-        if not movement:
-            route = self.path_finder(start, goal)
-        movement = self.move()
-        return movement
+            self.route = self.path_finder(start, goal)
+        if isinstance(self.route, float):
+            return ""
+        return self.move(start, goal)
 
-    def move(self) -> str: ...
+    def move(self, start: Zone, goal: Zone) -> str:
+        if len(self.path) >= 1:
+            currently_at = self.path[len(self.path) - 1]
+        else:
+            currently_at = start
+        if isinstance(currently_at, Zone):
+            next_stop = get_next_stop(currently_at)
+            connections = currently_at.connections
+            for connection in connections:
+                if connection.next_zone == next_stop:
+                    is_restricted, is_full = self.check_zone(next_stop)
+                    if is_restricted:
+                        if (len(connection.drones_in) <
+                            connection.max_link_capacity):
+                            # enter connection
+                            connection.drones_in.append(self)
+                            self.path.append(connection)
+                        else:
+                            return ""
+                    elif is_full: ...
+                else:
+                    continue
+        else:
+            next_stop = currently_at.next_zone
+
+    def check_zone(self, zone: Zone) -> tuple[bool, bool]:
+        if zone.kind == "restricted":
+            is_restricted = True
+        else:
+            is_restricted = False
+        if len(zone.drones_in) < zone.max_drones:
+            is_full = False
+        else:
+            is_full = True
+        return (is_restricted, is_full)
+
+    def get_next_stop(self, zone: Zone) -> Any: ...
 
     def path_finder(self,
                     start: Zone,
-                    goal: Zone) -> tuple[int, list[Zone]] | float:
+                    goal: Zone) -> list[Zone] | float:
         """
         1. While pq
         2. Check if Zone is visited, continue if it is
@@ -53,7 +86,7 @@ class Drone:
             path.append(zone)
             zone.visited = True
             if zone == goal:
-                return (dist, path)
+                return (path)
             for connection in zone.connections:
                 next_zone = connection.next_zone
                 # could be interesting to also take previous_zone into consideration

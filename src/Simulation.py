@@ -1,5 +1,5 @@
 from src.MapParser import MapParser
-from src.GraphLogic import Graph
+from src.GraphLogic import Graph, Zone, Connection
 from src.Drone import Drone
 from src.Grid import Grid
 from typing import Any
@@ -31,7 +31,7 @@ class Simulation:
             self.grid = Grid(map)
             self.grid.generate_grid()
             graph = Graph()
-            graph.graph_config(map)
+            graph.configure(map)
         except FileNotFoundError as e:
             print(f"ERROR: Map file not found: {e}")
             sys.exit(1)
@@ -47,9 +47,27 @@ class Simulation:
             self.drones = drone._all_drones
 
     def next_turn(self) -> str:
-        output: str = ""
+        turn_output: str = ""
+        if isinstance(self.graph, Graph):
+            start_hub = self.graph.start_hub
+            end_hub = self.graph.end_hub
+        else:
+            raise ValueError("ERROR: Something went wrong during Graph "
+                             "configure() method.")
 
-        return output
+        for i in range(len(self.drones)):
+            if (isinstance(start_hub, Zone) and
+               isinstance(end_hub, Zone)):
+                action_output = self.drones[i].act(start_hub, end_hub)
+            else:
+                raise ValueError("ERROR: Something went wrong during map "
+                                 "parsing.")
+            turn_output += action_output
+            if i != len(self.drones):
+                turn_output += " "
+
+        self.output += turn_output + "\n"
+        return turn_output
 
     def previous_turn(self) -> str:
         output: str = ""

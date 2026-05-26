@@ -45,6 +45,7 @@ class Connection:
         self.max_link_capacity = max_link_capacity
         self.grid_pos: tuple[int, int] = (0, 0)
         self.char: str = ""
+        self.drones_in: list = []
         Connection._all_connections.append(self)
 
 
@@ -60,7 +61,7 @@ class Graph:
         self.start_hub: Zone | None = None
         self.end_hub: Zone | None = None
 
-    def graph_config(self, map: dict[str, Any]) -> None:
+    def configure(self, map: dict[str, Any]) -> None:
         """
         """
 

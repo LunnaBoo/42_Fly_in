@@ -139,7 +139,3 @@ ZoneBlock {
 	height: 5;
 	min_width: 0;
 }
-
-#ZoneButton:focus {
-	color: transparent;
-}
