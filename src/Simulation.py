@@ -58,12 +58,15 @@ class Simulation:
         for i in range(len(self.drones)):
             if (isinstance(start_hub, Zone) and
                isinstance(end_hub, Zone)):
+                if self.drones[i].finished_traversal is True:
+                    del self.drones[i]
+                    continue
                 action_output = self.drones[i].act(start_hub, end_hub)
             else:
                 raise ValueError("ERROR: Something went wrong during map "
                                  "parsing.")
             turn_output += action_output
-            if i != len(self.drones):
+            if i != len(self.drones) and action_output:
                 turn_output += " "
 
         self.output += turn_output + "\n"

@@ -7,8 +7,9 @@ class Drone:
 
     def __init__(self) -> None:
         self.id: str = "D" + str(len(Drone._all_drones) + 1)
-        self.path: list[Zone] = []
+        self.path: list[Zone | Connection] = []
         self.route: list[Zone] | float = []
+        self.finished_traversal: bool = False
         Drone._all_drones.append(self)
 
     def act(self, start: Zone, goal: Zone) -> str:
@@ -26,7 +27,7 @@ class Drone:
             self.path.append(start)
             start.drones_in.append(self)
         if isinstance(currently_at, Zone):
-            next_stop = get_next_stop(currently_at)
+            next_stop = self.get_next_stop(currently_at)
             connections = currently_at.connections
             for connection in connections:
                 if connection.next_zone == next_stop:
@@ -44,10 +45,12 @@ class Drone:
                     elif is_full:
                         return ""
                     else:
-                        next_zone.drones_in.append(self)
+                        next_stop.drones_in.append(self)
                         currently_at.drones_in.remove(self)
-                        self.path.append(next_zone)
-                        return f"{self.id} - {next_zone.name}"
+                        self.path.append(next_stop)
+                        if next_stop == goal:
+                            self.finished_traversal = True
+                        return f"{self.id} - {next_stop.name}"
                 else:
                     continue
         else:
@@ -58,8 +61,21 @@ class Drone:
                                  "connection for another turn.")
             next_stop.drones_in.append(self)
             currently_at.drones_in.remove(self)
-            self.path.append(next_zone)
-            return f"{self.id} - {next_zone.name}"
+            self.path.append(next_stop)
+            if next_stop == goal:
+                self.finished_traversal = True
+            return f"{self.id} - {next_stop.name}"
+        return ""
+
+    def get_next_stop(self, currently_at: Zone) -> Zone:
+        found = False
+        if isinstance(self.route, list):
+            for zone in self.route:
+                if found == True:
+                    return zone
+                if zone == currently_at:
+                    found = True
+        raise ValueError("ERROR: Something went wrong during path-finding")
 
     def check_zone(self, zone: Zone) -> tuple[bool, bool]:
         if zone.kind == "restricted":
@@ -71,8 +87,6 @@ class Drone:
         else:
             is_full = True
         return (is_restricted, is_full)
-
-    def get_next_stop(self, zone: Zone) -> Any: ...
 
     def path_finder(self,
                     start: Zone,
