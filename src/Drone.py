@@ -23,6 +23,8 @@ class Drone:
             currently_at = self.path[len(self.path) - 1]
         else:
             currently_at = start
+            self.path.append(start)
+            start.drones_in.append(self)
         if isinstance(currently_at, Zone):
             next_stop = get_next_stop(currently_at)
             connections = currently_at.connections
@@ -34,14 +36,30 @@ class Drone:
                             connection.max_link_capacity):
                             # enter connection
                             connection.drones_in.append(self)
+                            currently_at.drones_in.remove(self)
                             self.path.append(connection)
+                            return f"{self.id} - {connection.name}"
                         else:
                             return ""
-                    elif is_full: ...
+                    elif is_full:
+                        return ""
+                    else:
+                        next_zone.drones_in.append(self)
+                        currently_at.drones_in.remove(self)
+                        self.path.append(next_zone)
+                        return f"{self.id} - {next_zone.name}"
                 else:
                     continue
         else:
             next_stop = currently_at.next_zone
+            is_restricted, is_full = self.check_zone(next_stop)
+            if is_full:
+                raise ValueError("ERROR: Drones can't enter next zone neither stay in "
+                                 "connection for another turn.")
+            next_stop.drones_in.append(self)
+            currently_at.drones_in.remove(self)
+            self.path.append(next_zone)
+            return f"{self.id} - {next_zone.name}"
 
     def check_zone(self, zone: Zone) -> tuple[bool, bool]:
         if zone.kind == "restricted":
