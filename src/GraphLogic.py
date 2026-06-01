@@ -11,7 +11,7 @@ class Zone:
                  pos: tuple[int, int],
                  is_start: bool = False,
                  is_end: bool = False,
-                 max_drones: int = 1,
+                 max_drones: int | float = 1,
                  color: str | None = None) -> None:
         self.id: str = "Z" + str(len(Zone._all_zones) + 1)
         self.name = name

@@ -87,6 +87,10 @@ class Drone:
             is_full = True
         return (is_restricted, is_full)
 
+    def __unvisit_zones(self, path: list[Zone]) -> None:
+        for zone in path:
+            zone.visited = False
+
     def path_finder(self,
                     start: Zone,
                     goal: Zone) -> list[Zone] | float:
@@ -117,6 +121,7 @@ class Drone:
             path.append(zone)
             zone.visited = True
             if zone == goal:
+                self.__unvisit_zones(path)
                 return (path)
             for connection in zone.connections:
                 next_zone = connection.next_zone
@@ -129,4 +134,6 @@ class Drone:
                     best[next_zone] = new_dist
                     heapq.heappush(priority_queue, (new_dist,
                                    next_zone, path))
+        dist, zone, path = priority_queue.pop()
+        self.__unvisit_zones(path)
         return float("inf")

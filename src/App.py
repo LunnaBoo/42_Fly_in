@@ -103,7 +103,7 @@ class ZoneBlock(Static):
         super().__init__(**kwargs)
         self.zone = zone
 
-    def on_mount(self) -> None:
+    def update_drones(self) -> None:
         if self.zone.drones_in:
             drones: str = ""
             for drone in self.zone.drones_in:
@@ -111,6 +111,9 @@ class ZoneBlock(Static):
             self.update(drones)
         else:
             self.update("")
+
+    def on_mount(self) -> None:
+        self.update_drones()
         if self.zone.kind == "normal":
             self.styles.background = "#d03791"
         elif self.zone.kind == "restricted":
@@ -203,8 +206,7 @@ class VisualOutput(Widget):
             self.app.simulation.next_turn()
             zones = self.query(ZoneBlock)
             for zone in zones:
-                zone.change_color(self.current_colorscheme)
-                zone.refresh()
+                zone.update_drones()
         else:
             def compose() -> ComposeResult:
                 yield Screen()
@@ -220,7 +222,8 @@ class VisualOutput(Widget):
             self.current_colorscheme = "default"
         zones = self.query(ZoneBlock)
         for zone in zones:
-            zone.on_mount()
+            zone.change_color(self.current_colorscheme)
+            zone.refresh()
 
 
 class TextualOutput(Widget): ...

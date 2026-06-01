@@ -106,7 +106,7 @@ class MapParser:
             pos: tuple[int, int] = (y, x)
             zone_type: str = "normal"
             color: str | None = None
-            max_drones: int = 1
+            max_drones: int | float = 1
             is_start: bool = False
             is_end: bool = False
             if key == "start_hub":
@@ -130,6 +130,8 @@ class MapParser:
             accepted_types = ["normal", "blocked", "priority", "restricted"]
             if zone_type not in accepted_types or max_drones < 0:
                 raise ValueError()
+            if is_start is True or is_end is True:
+                max_drones = float("inf")
             zone = Zone(name=name, zone_type=zone_type, pos=pos,
                         color=color, max_drones=max_drones,
                         is_start=is_start, is_end=is_end)
