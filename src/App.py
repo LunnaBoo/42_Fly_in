@@ -104,6 +104,13 @@ class ZoneBlock(Static):
         self.zone = zone
 
     def on_mount(self) -> None:
+        if self.zone.drones_in:
+            drones: str = ""
+            for drone in self.zone.drones_in:
+                drones += drone.id + " "
+            self.update(drones)
+        else:
+            self.update("")
         if self.zone.kind == "normal":
             self.styles.background = "#d03791"
         elif self.zone.kind == "restricted":
@@ -190,8 +197,18 @@ class VisualOutput(Widget):
     def action_previous_turn(self) -> None: ...
     """Action method to show the previous simulation turn."""
 
-    def action_next_turn(self) -> None: ...
-    """Action method to show the next simulation turn"""
+    def action_next_turn(self) -> None:
+        """Action method to show the next simulation turn"""
+        if self.app.simulation.finished == False:
+            self.app.simulation.next_turn()
+            zones = self.query(ZoneBlock)
+            for zone in zones:
+                zone.change_color(self.current_colorscheme)
+                zone.refresh()
+        else:
+            def compose() -> ComposeResult:
+                yield Screen()
+            compose()
 
     def action_start_or_pause(self) -> None: ...
     """Action method to start or pause the animation"""
@@ -203,8 +220,7 @@ class VisualOutput(Widget):
             self.current_colorscheme = "default"
         zones = self.query(ZoneBlock)
         for zone in zones:
-            zone.change_color(self.current_colorscheme)
-            zone.refresh()
+            zone.on_mount()
 
 
 class TextualOutput(Widget): ...

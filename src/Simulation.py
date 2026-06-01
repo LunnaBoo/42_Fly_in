@@ -12,6 +12,7 @@ class Simulation:
         self.grid: Grid | None = None
         self.drones: list[Drone] = []
         self.output: str = ""
+        self.finished = False
 
     def configure(self, filename: str) -> None:
         """
@@ -43,10 +44,13 @@ class Simulation:
             sys.exit(1)
         self.graph = graph
         for _ in range(graph.nb_drones):
-            drone = Drone()
-            self.drones = drone._all_drones
+            drone = Drone(self.start_hub)
+            self.drones.append(drone)
 
     def next_turn(self) -> str:
+        self.__validate()
+        if self.finished is True:
+            return "FINISHED"
         turn_output: str = ""
         if isinstance(self.graph, Graph):
             start_hub = self.graph.start_hub
@@ -55,29 +59,42 @@ class Simulation:
             raise ValueError("ERROR: Something went wrong during Graph "
                              "configure() method.")
 
-        for i in range(len(self.drones)):
+        i = 0
+        for drone in self.drones:
+            i += 1
             if (isinstance(start_hub, Zone) and
                isinstance(end_hub, Zone)):
-                if self.drones[i].finished_traversal is True:
-                    del self.drones[i]
-                    continue
-                action_output = self.drones[i].act(start_hub, end_hub)
+                action_output = drone.act(start_hub, end_hub)
             else:
                 raise ValueError("ERROR: Something went wrong during map "
                                  "parsing.")
             turn_output += action_output
-            if i != len(self.drones) and action_output:
+            if i < len(self.drones) and action_output:
                 turn_output += " "
+        
+        i = 0
+        for drone in self.drones:
+            if drone.finished_traversal is True:
+                del self.drones[i]
+            i += 1
+        if len(self.drones) < 1:
+            self.finished = True
 
         self.output += turn_output + "\n"
+        self.__write_output_file()
         return turn_output
 
     def previous_turn(self) -> str:
+        self.__validate()
         output: str = ""
 
         return output
 
-    def validate(self) -> None:
+    def __write_output_file(self) -> None:
+        with open("output.txt", "w") as file:
+            file.write(self.output)
+
+    def __validate(self) -> None:
         if not self.graph:
             raise ValueError("ERROR: Simulation configure() method must run "
                              "before anything else.")

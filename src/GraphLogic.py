@@ -22,10 +22,23 @@ class Zone:
         self.is_end = is_end
         self.max_drones = max_drones
         self.color = color
+        self.weight: float = 1
         self.connections: list[Connection] = []
         self.drones_in: list = []
         self.grid_pos: tuple = (0, 0)
+        if self.kind == "restricted":
+            self.weight = 2
+        elif self.kind == "priority":
+            self.weight = 0.5
+        elif self.kind == "blocked":
+            self.weight = float("inf")
         Zone._all_zones.append(self)
+
+    def __lt__(self, zone: Zone):
+        if not isinstance(zone, Zone):
+            raise ValueError("ERROR: Zone objects can only be "
+                             "compared against other zone objects.")
+        return self.weight < zone.weight
 
 
 class Connection:
@@ -57,7 +70,6 @@ class Graph:
         self.hubs: list[Zone] | None = None
         self.connections: list[Connection] | None = None
         self.nb_drones: int = 0
-        self.drones: list["Drone"] | None = None
         self.start_hub: Zone | None = None
         self.end_hub: Zone | None = None
 

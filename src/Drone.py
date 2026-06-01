@@ -5,27 +5,26 @@ import heapq
 class Drone:
     _all_drones: list["Drone"] = []
 
-    def __init__(self) -> None:
+    def __init__(self, start_hub: Zone) -> None:
         self.id: str = "D" + str(len(Drone._all_drones) + 1)
         self.path: list[Zone | Connection] = []
+        self.path.append(start_hub)
+        start_hub.drones_in.append(self)
         self.route: list[Zone] | float = []
         self.finished_traversal: bool = False
         Drone._all_drones.append(self)
 
     def act(self, start: Zone, goal: Zone) -> str:
+        if self.finished_traversal is True:
+            return ""
         if not self.route:
             self.route = self.path_finder(start, goal)
         if isinstance(self.route, float):
             return ""
-        return self.move(start, goal)
+        return self.move(goal)
 
-    def move(self, start: Zone, goal: Zone) -> str:
-        if len(self.path) >= 1:
-            currently_at = self.path[len(self.path) - 1]
-        else:
-            currently_at = start
-            self.path.append(start)
-            start.drones_in.append(self)
+    def move(self, goal: Zone) -> str:
+        currently_at = self.path[len(self.path) - 1]
         if isinstance(currently_at, Zone):
             next_stop = self.get_next_stop(currently_at)
             connections = currently_at.connections
@@ -125,14 +124,7 @@ class Drone:
                 # in cases where backtracking could be useful
                 if next_zone.visited:
                     continue
-                weight: float = 1
-                if next_zone.kind == "restricted":
-                    weight = 2
-                elif next_zone.kind == "priority":
-                    weight = 0.5
-                elif next_zone.kind == "blocked":
-                    weight = float("inf")
-                new_dist = dist + weight
+                new_dist = dist + next_zone.weight
                 if new_dist < best.get(next_zone, float("inf")):
                     best[next_zone] = new_dist
                     heapq.heappush(priority_queue, (new_dist,
