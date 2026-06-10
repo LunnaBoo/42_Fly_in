@@ -34,12 +34,6 @@ class Zone:
             self.weight = float("inf")
         Zone._all_zones.append(self)
 
-    def __lt__(self, zone: Zone):
-        if not isinstance(zone, Zone):
-            raise ValueError("ERROR: Zone objects can only be "
-                             "compared against other zone objects.")
-        return self.weight < zone.weight
-
 
 class Connection:
     """

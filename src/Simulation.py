@@ -71,7 +71,7 @@ class Simulation:
             turn_output += action_output
             if i < len(self.drones) and action_output:
                 turn_output += " "
-        
+
         i = 0
         for drone in self.drones:
             if drone.finished_traversal is True:

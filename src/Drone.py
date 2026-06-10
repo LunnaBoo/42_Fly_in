@@ -33,7 +33,7 @@ class Drone:
                     is_restricted, is_full = self.check_zone(next_stop)
                     if is_restricted:
                         if (len(connection.drones_in) <
-                            connection.max_link_capacity):
+                           connection.max_link_capacity):
                             # enter connection
                             connection.drones_in.append(self)
                             currently_at.drones_in.remove(self)
@@ -43,6 +43,9 @@ class Drone:
                             return ""
                     elif is_full:
                         return ""
+                    elif next_stop.kind == "blocked":
+                        raise ValueError("Path-finding ERROR: Drone "
+                                         "tried to enter a blocked zone.")
                     else:
                         next_stop.drones_in.append(self)
                         currently_at.drones_in.remove(self)
