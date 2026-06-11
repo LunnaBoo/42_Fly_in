@@ -1,0 +1,1 @@
+start fast_junction fast_path slow_path1 merge_point goal 

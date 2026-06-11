@@ -114,7 +114,6 @@ class Drone:
         """
 
         priority_queue: list = [(0, start, [])]
-        heapq.heapify(priority_queue)
         best: dict = {start: 0}
 
         while priority_queue:
@@ -135,8 +134,8 @@ class Drone:
                 new_dist = dist + next_zone.weight
                 if new_dist < best.get(next_zone, float("inf")):
                     best[next_zone] = new_dist
-                    heapq.heappush(priority_queue, (new_dist,
+                    priority_queue.append((new_dist,
                                    next_zone, path))
-        dist, zone, path = priority_queue.pop()
+        dist, zone, path = heapq.heappop(priority_queue)
         self.__unvisit_zones(path)
         return float("inf")

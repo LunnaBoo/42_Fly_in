@@ -1,5 +1,16 @@
-D1 - start-slow_path1 
-D1 - slow_path1 D2 - start-slow_path1 
-D1 - slow_path2 D2 - slow_path1 D3 - start-slow_path1 
-D1 - merge_point D2 - slow_path2 D3 - slow_path1 D4 - start-slow_path1 
-D1 - goal D2 - merge_point D3 - slow_path2 D4 - slow_path1 D5 - start-slow_path1
+D1 - dead_end1 D2 - dead_end1 
+D1 - dead_end2 D3 - dead_end1 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
