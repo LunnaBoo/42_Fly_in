@@ -90,10 +90,6 @@ class Drone:
             is_full = True
         return (is_restricted, is_full)
 
-    def __unvisit_zones(self, path: list[Zone]) -> None:
-        for zone in path:
-            zone.visited = False
-
     def path_finder(self,
                     start: Zone,
                     goal: Zone) -> list[Zone] | float:
@@ -113,29 +109,36 @@ class Drone:
         9. If while pq exits return float("inf"), meaning goal is unreachable
         """
 
-        priority_queue: list = [(0, start, [])]
-        best: dict = {start: 0}
+        priority_queue: list = [(0, start)]
+        heapq.heapify(priority_queue)
+        best_distance: dict = {start: 0}
+        predecessor: dict = {start: None}
+        visited: list = []
 
         while priority_queue:
-            dist, zone, path = priority_queue.pop()
-            if zone.visited:
+            dist, zone = heapq.heappop(priority_queue)
+            if zone in visited:
                 continue
-            path.append(zone)
-            zone.visited = True
+            else:
+                visited.append(zone)
             if zone == goal:
-                self.__unvisit_zones(path)
-                return (path)
+                path = []
+                current = goal
+                while current:
+                    path.append(current)
+                    current = predecessor.get(current)
+                path.reverse()
+                return path
             for connection in zone.connections:
-                next_zone = connection.next_zone
-                # could be interesting to also take previous_zone into consideration
-                # in cases where backtracking could be useful
-                if next_zone.visited:
+                neighbor = connection.next_zone
+                if neighbor == zone:
                     continue
-                new_dist = dist + next_zone.weight
-                if new_dist < best.get(next_zone, float("inf")):
-                    best[next_zone] = new_dist
-                    priority_queue.append((new_dist,
-                                   next_zone, path))
-        dist, zone, path = heapq.heappop(priority_queue)
-        self.__unvisit_zones(path)
+                n_dist = dist + neighbor.weight
+                if n_dist < best_distance.get(neighbor, float("inf")):
+                    best_distance[neighbor] = n_dist
+                    predecessor[neighbor] = zone
+                    heapq.heappush(priority_queue,
+                                   (n_dist, neighbor))
+                else:
+                    continue
         return float("inf")

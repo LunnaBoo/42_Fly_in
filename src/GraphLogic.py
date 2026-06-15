@@ -17,7 +17,6 @@ class Zone:
         self.name = name
         self.kind = zone_type
         self.pos = pos
-        self.visited: bool = False
         self.is_start = is_start
         self.is_end = is_end
         self.max_drones = max_drones
@@ -35,7 +34,7 @@ class Zone:
         Zone._all_zones.append(self)
 
     def __lt__(self, zone: "Zone"):
-        return self.weight == zone.weight
+        return self.weight < zone.weight
 
 
 class Connection:
