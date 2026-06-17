@@ -10,6 +10,7 @@ class Simulation:
     def __init__(self) -> None:
         self.graph: Graph | None = None
         self.grid: Grid | None = None
+        self.all_drones: list[Drone] = []
         self.drones: list[Drone] = []
         self.output: str = ""
         self.finished = False
@@ -26,6 +27,9 @@ class Simulation:
         """
 
         try:
+            import os
+            if os.path.exists("output.txt"):
+                os.remove("output.txt")
             map: dict[str, Any] = MapParser.parse_data(filename)
             self.start_hub = map["start_hub"]
             self.end_hub = map["end_hub"]
@@ -46,6 +50,7 @@ class Simulation:
         for _ in range(graph.nb_drones):
             drone = Drone(self.start_hub)
             self.drones.append(drone)
+        self.all_drones = self.drones.copy()
 
     def next_turn(self) -> str:
         self.__validate()
@@ -84,11 +89,40 @@ class Simulation:
         self.__write_output_file()
         return turn_output
 
-    def previous_turn(self) -> str:
+    def restart_simulation(self) -> None:
         self.__validate()
-        output: str = ""
+        self.finished = False
 
-        return output
+        # Remove drones from all zones
+        if isinstance(self.graph, Graph):
+            if isinstance(self.graph.hubs, list):
+                for zone in self.graph.hubs:
+                    zone.drones_in.clear()
+            if isinstance(self.graph.connections, list):
+                for connection in self.graph.connections:
+                    connection.drones_in.clear()
+
+
+        # Remove self.route from all drones
+        for drone in self.all_drones:
+            if isinstance(self.graph, Graph):
+                if isinstance(self.graph.start_hub, Zone):
+                    drone.reset()
+        self.all_drones.clear()
+        self.drones.clear()
+        
+        if isinstance(self.graph, Graph):
+            for _ in range(self.graph.nb_drones):
+                if isinstance(self.graph.start_hub, Zone):
+                    drone = Drone(self.graph.start_hub)
+                    self.drones.append(drone)
+        self.all_drones = self.drones.copy()
+
+        self.output = ""
+
+        import os
+        if os.path.exists("output.txt"):
+            os.remove("output.txt")
 
     def __write_output_file(self) -> None:
         with open("output.txt", "w") as file:

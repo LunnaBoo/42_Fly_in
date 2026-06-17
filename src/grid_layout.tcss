@@ -53,30 +53,101 @@ Map {
 	grid-gutter: 1;
 }
 
-#warning-container {
+#impossible-container {
 	layout: horizontal;
 	align: center middle;
 	height: 100%;
 	width: 100%;
 }
 
-#title {
+#title-2 {
 	dock: top;
 	background: #d03791;
 	content-align: center top;
 	align: center top;
 }
 
-#left-icon {
+#impossible-text {
 	text-align: center;
-	height: 10;
-	width: 10;
+	content-align: center middle;
+	border: dashed white;
+	width: 50%;
+	height: 60%;
+	background: #452459;
 }
 
-#right-icon {
+ImpossibleScreen {
+	background: #260d34;
+	align: center middle;
 	text-align: center;
-	height: 10;
-	width: 10;
+	padding: 2 2;
+}
+
+ColorScreen {
+	background: #260d34;
+	align: center middle;
+	text-align: center;
+	padding: 2 2;
+}
+
+#color-text {
+	text-align: center;
+	content-align: center middle;
+	width: 50%;
+	height: 60%;
+	background: black;
+}
+
+#title-4 {
+	dock: top;
+	background: #d03791;
+	content-align: center top;
+	align: center top;
+}
+
+FinishedScreen {
+	background: #260d34;
+	align: center middle;
+	text-align: center;
+	padding: 2 2;
+}
+
+#finished-text {
+	text-align: center;
+	content-align: center middle;
+	border: dashed white;
+	width: 50%;
+	height: 60%;
+	background: #452459;
+}
+
+#title-3 {
+	dock: top;
+	background: #d03791;
+	content-align: center top;
+	align: center top;
+}
+
+#color-container {
+	layout: horizontal;
+	align: center middle;
+	height: 100%;
+	width: 100%;
+}
+
+#finished-container {
+	layout: horizontal;
+	align: center middle;
+	height: 100%;
+	width: 100%;
+}
+
+
+#title {
+	dock: top;
+	background: #d03791;
+	content-align: center top;
+	align: center top;
 }
 
 #warning-text {
@@ -94,6 +165,14 @@ WarningScreen {
 	text-align: center;
 	padding: 2 2;
 }
+
+#warning-container {
+	layout: horizontal;
+	align: center middle;
+	height: 100%;
+	width: 100%;
+}
+
 
 Tabs {
 	height: 2;
@@ -138,4 +217,66 @@ ZoneBlock {
 	width: 15;
 	height: 5;
 	min_width: 0;
+}
+
+#app-grid {
+    layout: grid;
+    grid-size: 2 2;
+    grid-columns: 1fr 1fr;
+    grid-rows: auto 1fr;
+	height: 100%;
+	grid-gutter: 1;
+}
+
+#left-pane > Static {
+	background: #452459;
+    color: auto;
+}
+
+#left-pane {
+    width: 100%;
+    height: 100%;
+    row-span: 2;
+	background: #260d34;
+	border: ascii white;
+}
+
+#right-pane {
+    width: 100%;
+    height: 100%;
+    row-span: 2;
+	background: #260d34;
+	border: ascii white;
+}
+
+#right-pane > Static {
+	background: #452459;
+	color: auto;
+}
+
+#top-pane {
+	background: #260d34;
+	column-span: 2;
+	width: 100%;
+	border: ascii white;
+}
+
+#top-pane > Static {
+	background: #452459;
+	color: auto;
+	text-align: center;
+	width: 100%;
+	height: 2;
+}
+
+#textual-right-label {
+	width: 100%;
+	background: #260d34;
+	text-style: underline;
+}
+
+#textual-left-label {
+	width: 100%;
+	background: #260d34;
+	text-style: underline;
 }

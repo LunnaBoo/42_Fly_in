@@ -11,6 +11,7 @@ class Drone:
         self.path.append(start_hub)
         start_hub.drones_in.append(self)
         self.route: list[Zone] | float = []
+        self.dist = float("inf")
         self.finished_traversal: bool = False
         Drone._all_drones.append(self)
 
@@ -18,9 +19,21 @@ class Drone:
         if self.finished_traversal is True:
             return ""
         if not self.route:
-            self.route = self.path_finder(start, goal)
+            dist, route = self.path_finder(start, goal)
+            self.dist = dist
+            self.route = route
         if isinstance(self.route, float):
-            return ""
+            return "IMPOSSIBLE"
+        move = self.move(goal)
+        if move == "":
+            alt_dist, alt_route = self.alt_path_finder(start, goal)
+            if alt_dist < self.dist * 2:
+                self.dist = alt_dist
+                self.route = alt_route
+            else:
+                return ""
+        else:
+            return move
         return self.move(goal)
 
     def move(self, goal: Zone) -> str:
@@ -92,7 +105,8 @@ class Drone:
 
     def path_finder(self,
                     start: Zone,
-                    goal: Zone) -> list[Zone] | float:
+                    goal: Zone
+                    ) -> tuple[float, list[Zone]] | tuple[float, float]:
         """
         1. While pq
         2. Check if Zone is visited, continue if it is
@@ -128,7 +142,7 @@ class Drone:
                     path.append(current)
                     current = predecessor.get(current)
                 path.reverse()
-                return path
+                return dist, path
             for connection in zone.connections:
                 neighbor = connection.next_zone
                 if neighbor == zone:
@@ -141,4 +155,73 @@ class Drone:
                                    (n_dist, neighbor))
                 else:
                     continue
-        return float("inf")
+        return float("inf"), float("inf")
+
+    def alt_path_finder(self,
+                    start: Zone,
+                    goal: Zone
+                    ) -> tuple[float, list[Zone]] | tuple[float, float]:
+        """
+        1. While pq
+        2. Check if Zone is visited, continue if it is
+        3. If not, add Zone to path and mark it
+        4. If Zone is Goal, return distance and path
+        5. For Connection in Zone
+        6. If Connection.next_zone is visited, continue
+        7. Set Connection.next_zone dist to be equal to dist + it's weight
+        8. If new_dist is lesser than best[Connection.next_zone], which stores
+           smallest weight to get to that zone:
+            1. Declare best[Connection.next_zone] to equal new_dist
+            2. heappush (new_dist, Connection.next_zone, path)
+
+        9. If while pq exits return float("inf"), meaning goal is unreachable
+        """
+
+        current_zone = None
+        for zone in self.path:
+            if self in zone.drones_in:
+                current_zone = zone
+        if isinstance(current_zone, Zone):
+            start = current_zone
+
+        priority_queue: list = [(0, start)]
+        heapq.heapify(priority_queue)
+        best_distance: dict = {start: 0}
+        predecessor: dict = {start: None}
+        visited: list = []
+
+        while priority_queue:
+            dist, zone = heapq.heappop(priority_queue)
+            if zone in visited:
+                continue
+            else:
+                visited.append(zone)
+            if zone == goal:
+                path = []
+                current = goal
+                while current:
+                    path.append(current)
+                    current = predecessor.get(current)
+                path.reverse()
+                return dist, path
+            for connection in zone.connections:
+                neighbor = connection.next_zone
+                if neighbor == zone:
+                    continue
+                if len(neighbor.drones_in) >= neighbor.max_drones:
+                    weight = float("inf")
+                else:
+                    weight = neighbor.weight
+                n_dist = dist + weight
+                if n_dist < best_distance.get(neighbor, float("inf")):
+                    best_distance[neighbor] = n_dist
+                    predecessor[neighbor] = zone
+                    heapq.heappush(priority_queue,
+                                   (n_dist, neighbor))
+                else:
+                    continue
+        return float("inf"), float("inf")
+
+    @classmethod
+    def reset(cls) -> None:
+        cls._all_drones.clear()

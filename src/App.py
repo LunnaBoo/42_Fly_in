@@ -1,13 +1,14 @@
-from textual.app import App, ComposeResult
+from textual.app import App, ComposeResult, ScreenStackError
+from textual.css.query import NoMatches
 from textual.widgets import (Footer, Header, Static,
-                             Label, TabPane, TabbedContent)
+                             Label, TabPane, TabbedContent, Tab)
 from textual.widgets._tabbed_content import ContentTabs
 from textual.widget import Widget
-from textual.containers import Container, ScrollableContainer
+from textual.containers import Container, Horizontal, ScrollableContainer, VerticalScroll
 from textual.screen import Screen
 from textual.reactive import reactive
 from textual.color import Color, ColorParseError
-from textual import getters
+from textual import getters, events
 from src.Simulation import Simulation
 from src.GraphLogic import Zone, Connection
 import sys
@@ -16,14 +17,13 @@ import sys
 class FlyInApp(App):
     """App class responsable for the front-end of our program."""
 
-    BINDINGS = [
-        ("k", "change_tab", "Change tab"),
-    ]
     CSS_PATH = "grid_layout.tcss"
 
     argv = sys.argv
     simulation = Simulation()
     simulation.configure(argv[1])
+    turn_number = reactive(0)
+    finished = reactive(0)
 
     def compose(self) -> ComposeResult:
         """Creates child widgets for the app."""
@@ -33,17 +33,7 @@ class FlyInApp(App):
 
     def on_mount(self) -> None:
         self.title = "✦ │  F l y - i n │ ✦"
-        self.push_screen(MainScreen())
         self.push_screen(WarningScreen())
-
-    def get_tabs_widget(self):
-        """Finds the internal Tabs widget (ContentTabs)."""
-        main_screen = self.screen
-        tabbed_content = main_screen.tabbed_content
-        return tabbed_content.query_one(ContentTabs)
-
-    def action_change_tab(self) -> None:
-        self.get_tabs_widget().action_next_tab()
 
 
 class WarningScreen(Screen):
@@ -55,7 +45,7 @@ class WarningScreen(Screen):
     """
 
     def compose(self) -> ComposeResult:
-        yield Container(Static("ⓘ", id="left-icon"), Static(
+        yield Container(Static(
                         "[bold]About Connections... [/]\n"
                         "In the Visual Output tab "
                         "connections are represented by "
@@ -63,8 +53,8 @@ class WarningScreen(Screen):
                         " the actual "
                         "connections stated in the map.txt file."
                         "\nThey're only supposed "
-                        "to serve as visual aid. For checking the actual "
-                        "connections, go to "
+                        "to serve as visual aid. To check the actual "
+                        "connections go to "
                         "the Textual Output tab in the next screen.\n\n"
                         "[bold]Terminal sizing...[/]\nThis application runs "
                         "in your "
@@ -75,17 +65,83 @@ class WarningScreen(Screen):
                         "terminal emulator."
                         "\n\n[blink]Press any key to continue[/]",
                         id="warning-text"), Static(self.TITLE, id="title"),
-                        Static("ⓘ", id="right-icon"),
                         id="warning-container")
 
     async def on_key(self) -> None:
-        self.skip_warning()
+        await self.skip_warning()
+
+    async def skip_warning(self) -> None:
+        try:
+            self.dismiss()
+        except ScreenStackError:
+            pass
+        self.app.call_after_refresh(lambda: self.app.push_screen(MainScreen()))
+
+class FinishedScreen(Screen):
+    TITLE = """
+    ▗▄▄▄▖▗▄▄▄▖▗▖  ▗▖▗▄▄▄▖ ▗▄▄▖▗▖ ▗▖▗▄▄▄▖▗▄▄▄  
+    ▐▌     █  ▐▛▚▖▐▌  █  ▐▌   ▐▌ ▐▌▐▌   ▐▌  █ 
+    ▐▛▀▀▘  █  ▐▌ ▝▜▌  █   ▝▀▚▖▐▛▀▜▌▐▛▀▀▘▐▌  █ 
+    ▐▌   ▗▄█▄▖▐▌  ▐▌▗▄█▄▖▗▄▄▞▘▐▌ ▐▌▐▙▄▄▖▐▙▄▄▀ 
+    """
+
+    def compose(self) -> ComposeResult:
+        yield Container(Static(
+                        "[bold]Simulation finished![/]\n\n"
+                        "You may look at simulation statistics in "
+                        "the Textual tab.\n Just press 'space' and "
+                        "change tabs with 'k'."
+                        "\n\n[blink]Press SPACE to continue[/]",
+                        id="finished-text"), Static(self.TITLE, id="title-3"),
+                        id="finished-container")
+
+    async def on_key(self, event: events.Key) -> None:
+        if event.key != "d":
+            self.skip_warning()
 
     def skip_warning(self) -> None:
         self.app.pop_screen()
 
 
+class ColorScreen(Screen):
+    TITLE = """
+    ▗▖ ▗▖▗▖ ▗▖▗▄▄▖      ▗▄▄▖ ▗▄▖ ▗▖    ▗▄▖ ▗▄▄▖  ▗▄▄▖
+    ▐▌ ▐▌▐▌ ▐▌▐▌ ▐▌    ▐▌   ▐▌ ▐▌▐▌   ▐▌ ▐▌▐▌ ▐▌▐▌   
+    ▐▛▀▜▌▐▌ ▐▌▐▛▀▚▖    ▐▌   ▐▌ ▐▌▐▌   ▐▌ ▐▌▐▛▀▚▖ ▝▀▚▖
+    ▐▌ ▐▌▝▚▄▞▘▐▙▄▞▘    ▝▚▄▄▖▝▚▄▞▘▐▙▄▄▖▝▚▄▞▘▐▌ ▐▌▗▄▄▞▘
+    """
+
+    def compose(self) -> ComposeResult:
+        yield Container(Static(
+                        "[on#87286a]This color means RESTRICTED - Drones take 2 turns"
+                        " to enter these hubs.[/]\n\n"
+                        "[on#fe6c90]This color means PRIORITY - Drones will prioritize "
+                        "these hubs over other types.[/]\n\n"
+                        "[on#260d34]This color means BLOCKED - Drones cannot enter "
+                        "these hubs.[/]\n\n"
+                        "[on#d03791]This color means NORMAL - Nothing special about" 
+                        "these hubs.[/]\n\n"
+                        "\n[blink]Press any key to continue[/]",
+                        id="color-text"), Static(self.TITLE, id="title-4"),
+                        id="color-container")
+
+    async def on_key(self, event: events.Key) -> None:
+        if event.key != "h":
+            await self.skip_warning()
+
+    async def skip_warning(self) -> None:
+        try:
+            self.dismiss()
+        except ScreenStackError:
+            pass
+        self.app.call_after_refresh(lambda: self.app.push_screen(MainScreen()))
+
+
 class MainScreen(Screen):
+
+    BINDINGS = [
+        ("tab", "change_tab", "Change tab"),
+    ]
 
     def compose(self) -> ComposeResult:
         yield Header(icon="boo!")
@@ -97,6 +153,37 @@ class MainScreen(Screen):
             with TabPane("Textual Output", id="textual_tab"):
                 yield TextualOutput()
 
+    def on_mount(self) -> None:
+        self.query_one(Map).focus()
+
+    def get_tabs_widget(self):
+        """Finds the internal Tabs widget (ContentTabs)."""
+        main_screen = self.screen
+        tabbed_content = main_screen.tabbed_content
+        return tabbed_content.query_one(ContentTabs)
+
+    def action_change_tab(self) -> None:
+        current = "visual"
+        if self.screen.tabbed_content.active == "textual_tab":
+            self.query_one(Map).focus()
+            current = "textual"
+        tabs = self.query(Tab)
+        for tab in tabs:
+            if "visual" in tab.id:
+                if current == "visual":
+                    tab.styles.background = "#d03791"
+            else:
+                if current == "textual":
+                    tab.styles.background = "#d03791"
+        self.get_tabs_widget().action_next_tab()
+        for tab in tabs:
+            if "visual" in tab.id:
+                if current == "textual":
+                    tab.styles.background = "#e84a9e"
+            else:
+                if current == "visual":
+                    tab.styles.background = "#e84a9e"
+            
 
 class ZoneBlock(Static):
     def __init__(self, zone: Zone, **kwargs) -> None:
@@ -152,17 +239,9 @@ class ZoneWidget(Container):
         yield Label(self.zone.name, id="ZoneLabel")
 
 
-class ConnectionWidget(Static):
-    def __init__(self, connection: Connection, **kwargs) -> None:
-        super().__init__(**kwargs)
-        self.connection = connection
-
-    def compose(self) -> ComposeResult:
-        yield Static(self.connection.char)
-
-
 class Map(Container):
     app = getters.app(FlyInApp)
+    can_focus = True
 
     def on_mount(self) -> None:
         grid = self.app.simulation.grid
@@ -184,12 +263,29 @@ class Map(Container):
             self.mount_all(zones_to_mount)
 
 
+class ImpossibleScreen(Screen):
+    TITLE = """
+▗▖ ▗▖   ▗▄▖   ▗▄▄▖   ▗▖  ▗▖  ▗▄▄▄▖  ▗▖  ▗▖   ▗▄▄▖
+▐▌ ▐▌  ▐▌ ▐▌  ▐▌ ▐▌  ▐▛▚▖▐▌    █    ▐▛▚▖▐▌  ▐▌
+▐▌ ▐▌  ▐▛▀▜▌  ▐▛▀▚▖  ▐▌ ▝▜▌    █    ▐▌ ▝▜▌  ▐▌▝▜▌
+▐▙█▟▌  ▐▌ ▐▌  ▐▌ ▐▌  ▐▌  ▐▌  ▗▄█▄▖  ▐▌  ▐▌  ▝▚▄▞▘
+    """
+
+    def compose(self) -> ComposeResult:
+        yield Container(Static("[bold]Something went wrong...[/]\n\n"
+                        "There is no possible route from "
+                        "start_hub to end_hub.\nThe map is unsolvable.\n\n"
+                        "You may quit the program with\n [blink]ctrl + q[/]",
+                        id="impossible-text"), Static(self.TITLE, id="title-2"),
+                        id="impossible-container")
+
+
 class VisualOutput(Widget):
     BINDINGS = [
-        ("a", "previous_turn", "Shows previous turn"),
+        ("a", "restart_simulation", "Restarts simulation"),
         ("d", "next_turn", "Shows next turn"),
-        ("p", "start_or_pause", "Starts/pauses the animation"),
-        ("c", "change_colorscheme", "Changes zone colorscheme")
+        ("c", "change_colorscheme", "Changes zone colorscheme"),
+        ("h", "show_colors", "Opens hub colors glossary")
         ]
 
     current_colorscheme = reactive("custom")
@@ -197,23 +293,37 @@ class VisualOutput(Widget):
     def compose(self) -> ComposeResult:
         yield ScrollableContainer(Map())
 
-    def action_previous_turn(self) -> None: ...
-    """Action method to show the previous simulation turn."""
+    def action_restart_simulation(self) -> None:
+        if self.app.turn_number < 1:
+            return
+        self.app.simulation.restart_simulation()
+        self.app.turn_number = 0
+        self.app.finished = 0
+        zones = self.query(ZoneBlock)
+        for zone in zones:
+            zone.update_drones()
+        self.refresh()
 
     def action_next_turn(self) -> None:
         """Action method to show the next simulation turn"""
-        if self.app.simulation.finished == False:
-            self.app.simulation.next_turn()
-            zones = self.query(ZoneBlock)
-            for zone in zones:
-                zone.update_drones()
-        else:
-            def compose() -> ComposeResult:
-                yield Screen()
-            compose()
-
-    def action_start_or_pause(self) -> None: ...
-    """Action method to start or pause the animation"""
+        output = self.app.simulation.next_turn()
+        if self.app.simulation.finished == True:
+            if self.app.finished == 0:
+                self.app.push_screen(FinishedScreen())
+                self.app.finished = 1
+            return
+        if output == "IMPOSSIBLE":
+            try:
+                with open("output.txt", "w") as file:
+                    file.write("IMPOSSIBLE")
+            except Exception:
+                pass
+            self.app.push_screen(ImpossibleScreen())
+            
+        zones = self.query(ZoneBlock)
+        for zone in zones:
+            zone.update_drones()
+        self.app.turn_number += 1
 
     def action_change_colorscheme(self) -> None:
         if self.current_colorscheme == "default":
@@ -225,5 +335,62 @@ class VisualOutput(Widget):
             zone.change_color(self.current_colorscheme)
             zone.refresh()
 
+    def action_show_colors(self) -> None:
+        self.app.push_screen(ColorScreen())
 
-class TextualOutput(Widget): ...
+
+class TextualOutput(Widget):
+
+    def on_mount(self) -> None:
+        self.watch(self.app, "turn_number", self._on_turn_changed)
+        try:
+            with open(self.app.argv[1], "r") as file:
+                map_lines = file.readlines()
+        except FileNotFoundError:
+            raise ValueError("ERROR: No map file detected!")
+        except PermissionError:
+            map_lines = ["Map file data couldn't be shown due to "
+                         "permission errors. Change file permissions "
+                         "to fix this."]
+        left_pane = self.query_one("#left-pane")
+        right_pane = self.query_one("#right-pane")
+        top_pane = self.query_one("#top-pane")
+        left_pane.can_focus = False
+        right_pane.can_focus = False
+        top_pane.can_focus = False
+        top_pane.mount(Static(f"N u m b e r   o f   T u r n s :  {self.app.turn_number}", id="display-turn"))
+        for line in map_lines:
+            left_pane.mount(Static(line.strip(), markup=False))
+
+    def _on_turn_changed(self) -> None:
+        try:
+            with open("output.txt", "r") as file:
+                output_lines = file.readlines()
+        except FileNotFoundError:
+            output_lines = [""]
+        except PermissionError:
+            output_lines = ["output file data couldn't be shown due to "
+                            "permission errors. Change file permissions "
+                            "to fix this."]
+        right_static = self.query_one("#right-static")
+        try:
+            display_turn = self.query_one("#display-turn")
+            display_turn.update(f"N u m b e r   o f   T u r n s :  {self.app.turn_number}")
+        except NoMatches:
+            pass
+        output = ""
+        for line in output_lines:
+            output += line.strip() + "\n"
+        right_static.update(output)
+        self.refresh()
+    
+    def compose(self) -> ComposeResult:
+        with Container(id="app-grid"):
+            with Container(id="top-pane"):
+                yield Static()
+            with VerticalScroll(id="left-pane"):
+                yield Label("MAP DATA - HUBS AND CONNECTIONS\n", id="textual-left-label")
+                yield Static()
+            with VerticalScroll(id="right-pane"):
+                yield Label("TURN DATA - EACH LINE REPRESENTS A TURN\n", id="textual-right-label")
+                yield Static(id="right-static")
