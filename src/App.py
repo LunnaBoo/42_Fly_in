@@ -371,7 +371,7 @@ class TextualOutput(Widget):
             with open("output.txt", "r") as file:
                 output_lines = file.readlines()
         except FileNotFoundError:
-            output_lines = [""]
+            output_lines = []
         except PermissionError:
             output_lines = ["output file data couldn't be shown due to "
                             "permission errors. Change file permissions "
