@@ -27,7 +27,7 @@ class Drone:
         move = self.move(goal)
         if move == "":
             alt_dist, alt_route = self.alt_path_finder(start, goal)
-            if alt_dist < self.dist * 2:
+            if alt_dist < (self.dist * 3) / 2:
                 self.dist = alt_dist
                 self.route = alt_route
             else:

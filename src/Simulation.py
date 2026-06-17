@@ -85,7 +85,10 @@ class Simulation:
         if len(self.drones) < 1:
             self.finished = True
 
-        self.output += turn_output + "\n"
+        if self.finished is False:
+            self.output += turn_output + "\n"
+        else:
+            self.output += turn_output
         self.__write_output_file()
         return turn_output
 
@@ -103,7 +106,7 @@ class Simulation:
                     connection.drones_in.clear()
 
 
-        # Remove self.route from all drones
+        # Reset all drones
         for drone in self.all_drones:
             if isinstance(self.graph, Graph):
                 if isinstance(self.graph.start_hub, Zone):

@@ -307,12 +307,16 @@ class VisualOutput(Widget):
     def action_next_turn(self) -> None:
         """Action method to show the next simulation turn"""
         output = self.app.simulation.next_turn()
-        if self.app.simulation.finished == True:
+        if self.app.simulation.finished is True:
             if self.app.finished == 0:
                 self.app.push_screen(FinishedScreen())
                 self.app.finished = 1
+                self.screen.query_one(TextualOutput)._on_turn_changed()
+                zones = self.query(ZoneBlock)
+                for zone in zones:
+                    zone.update_drones()
             return
-        if output == "IMPOSSIBLE":
+        elif output == "IMPOSSIBLE":
             try:
                 with open("output.txt", "w") as file:
                     file.write("IMPOSSIBLE")
@@ -358,7 +362,7 @@ class TextualOutput(Widget):
         left_pane.can_focus = False
         right_pane.can_focus = False
         top_pane.can_focus = False
-        top_pane.mount(Static(f"N u m b e r   o f   T u r n s :  {self.app.turn_number}", id="display-turn"))
+        top_pane.mount(Static(f"N u m b e r   o f   T u r n s :  0", id="display-turn"))
         for line in map_lines:
             left_pane.mount(Static(line.strip(), markup=False))
 
@@ -373,14 +377,14 @@ class TextualOutput(Widget):
                             "permission errors. Change file permissions "
                             "to fix this."]
         right_static = self.query_one("#right-static")
-        try:
-            display_turn = self.query_one("#display-turn")
-            display_turn.update(f"N u m b e r   o f   T u r n s :  {self.app.turn_number}")
-        except NoMatches:
-            pass
         output = ""
         for line in output_lines:
             output += line.strip() + "\n"
+        try:
+            display_turn = self.query_one("#display-turn")
+            display_turn.update(f"N u m b e r   o f   T u r n s :  {len(output_lines)}")
+        except NoMatches:
+            pass
         right_static.update(output)
         self.refresh()
     
