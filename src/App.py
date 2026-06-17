@@ -4,7 +4,8 @@ from textual.widgets import (Footer, Header, Static,
                              Label, TabPane, TabbedContent, Tab)
 from textual.widgets._tabbed_content import ContentTabs
 from textual.widget import Widget
-from textual.containers import Container, Horizontal, ScrollableContainer, VerticalScroll
+from textual.containers import (Container, ScrollableContainer,
+                                VerticalScroll)
 from textual.screen import Screen
 from textual.reactive import reactive
 from textual.color import Color, ColorParseError
@@ -17,7 +18,7 @@ import sys
 class FlyInApp(App):
     """App class responsable for the front-end of our program."""
 
-    CSS_PATH = "grid_layout.tcss"
+    CSS_PATH = "app.tcss"
 
     argv = sys.argv
     simulation = Simulation()
@@ -113,13 +114,17 @@ class ColorScreen(Screen):
 
     def compose(self) -> ComposeResult:
         yield Container(Static(
-                        "[on#87286a]This color means RESTRICTED - Drones take 2 turns"
+                        "[on#87286a]This color means RESTRICTED - "
+                        "Drones take 2 turns"
                         " to enter these hubs.[/]\n\n"
-                        "[on#fe6c90]This color means PRIORITY - Drones will prioritize "
+                        "[on#fe6c90]This color means PRIORITY - "
+                        "Drones will prioritize "
                         "these hubs over other types.[/]\n\n"
-                        "[on#260d34]This color means BLOCKED - Drones cannot enter "
+                        "[on#260d34]This color means BLOCKED - "
+                        "Drones cannot enter "
                         "these hubs.[/]\n\n"
-                        "[on#d03791]This color means NORMAL - Nothing special about" 
+                        "[on#d03791]This color means NORMAL - "
+                        "Nothing special about" 
                         "these hubs.[/]\n\n"
                         "\n[blink]Press any key to continue[/]",
                         id="color-text"), Static(self.TITLE, id="title-4"),
@@ -254,7 +259,8 @@ class Map(Container):
                     zone = grid.matrix[
                             y - grid.y_offset][x - grid.x_offset]
                     if isinstance(zone, Zone):
-                        zones_to_mount.append(ZoneWidget(id=zone.id, zone=zone))
+                        zones_to_mount.append(ZoneWidget(id=zone.id,
+                                                         zone=zone))
                     elif isinstance(zone, Connection):
                         zones_to_mount.append(Static(zone.char,
                                                      classes="connection"))
@@ -265,18 +271,19 @@ class Map(Container):
 
 class ImpossibleScreen(Screen):
     TITLE = """
-▗▖ ▗▖   ▗▄▖   ▗▄▄▖   ▗▖  ▗▖  ▗▄▄▄▖  ▗▖  ▗▖   ▗▄▄▖
-▐▌ ▐▌  ▐▌ ▐▌  ▐▌ ▐▌  ▐▛▚▖▐▌    █    ▐▛▚▖▐▌  ▐▌
-▐▌ ▐▌  ▐▛▀▜▌  ▐▛▀▚▖  ▐▌ ▝▜▌    █    ▐▌ ▝▜▌  ▐▌▝▜▌
-▐▙█▟▌  ▐▌ ▐▌  ▐▌ ▐▌  ▐▌  ▐▌  ▗▄█▄▖  ▐▌  ▐▌  ▝▚▄▞▘
+    ▗▄▄▄▖▗▖  ▗▖▗▄▄▖  ▗▄▖  ▗▄▄▖ ▗▄▄▖▗▄▄▄▖▗▄▄▖ ▗▖   ▗▄▄▄▖
+      █  ▐▛▚▞▜▌▐▌ ▐▌▐▌ ▐▌▐▌   ▐▌     █  ▐▌ ▐▌▐▌   ▐▌   
+      █  ▐▌  ▐▌▐▛▀▘ ▐▌ ▐▌ ▝▀▚▖ ▝▀▚▖  █  ▐▛▀▚▖▐▌   ▐▛▀▀▘
+    ▗▄█▄▖▐▌  ▐▌▐▌   ▝▚▄▞▘▗▄▄▞▘▗▄▄▞▘▗▄█▄▖▐▙▄▞▘▐▙▄▄▖▐▙▄▄▖
     """
 
     def compose(self) -> ComposeResult:
         yield Container(Static("[bold]Something went wrong...[/]\n\n"
                         "There is no possible route from "
-                        "start_hub to end_hub.\nThe map is unsolvable.\n\n"
+                        "start_hub to end_hub.\nThis map is unsolvable.\n\n"
                         "You may quit the program with\n [blink]ctrl + q[/]",
-                        id="impossible-text"), Static(self.TITLE, id="title-2"),
+                        id="impossible-text"), Static(self.TITLE,
+                                                      id="title-2"),
                         id="impossible-container")
 
 
@@ -316,7 +323,7 @@ class VisualOutput(Widget):
                 for zone in zones:
                     zone.update_drones()
             return
-        elif output == "IMPOSSIBLE":
+        elif "IMPOSSIBLE" in output:
             try:
                 with open("output.txt", "w") as file:
                     file.write("IMPOSSIBLE")
@@ -362,7 +369,8 @@ class TextualOutput(Widget):
         left_pane.can_focus = False
         right_pane.can_focus = False
         top_pane.can_focus = False
-        top_pane.mount(Static(f"N u m b e r   o f   T u r n s :  0", id="display-turn"))
+        top_pane.mount(Static(f"N u m b e r   o f   T u r n s :  0",
+                              id="display-turn"))
         for line in map_lines:
             left_pane.mount(Static(line.strip(), markup=False))
 
@@ -382,7 +390,8 @@ class TextualOutput(Widget):
             output += line.strip() + "\n"
         try:
             display_turn = self.query_one("#display-turn")
-            display_turn.update(f"N u m b e r   o f   T u r n s :  {len(output_lines)}")
+            display_turn.update(f"N u m b e r   o f   T u r n s :"
+                                f"  {len(output_lines)}")
         except NoMatches:
             pass
         right_static.update(output)
@@ -393,8 +402,10 @@ class TextualOutput(Widget):
             with Container(id="top-pane"):
                 yield Static()
             with VerticalScroll(id="left-pane"):
-                yield Label("MAP DATA - HUBS AND CONNECTIONS\n", id="textual-left-label")
+                yield Label("MAP DATA - HUBS AND CONNECTIONS\n",
+                            id="textual-left-label")
                 yield Static()
             with VerticalScroll(id="right-pane"):
-                yield Label("TURN DATA - EACH LINE REPRESENTS A TURN\n", id="textual-right-label")
+                yield Label("TURN DATA - EACH LINE REPRESENTS A TURN\n",
+                            id="textual-right-label")
                 yield Static(id="right-static")

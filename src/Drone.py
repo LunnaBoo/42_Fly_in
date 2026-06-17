@@ -72,7 +72,8 @@ class Drone:
             next_stop = currently_at.next_zone
             is_restricted, is_full = self.check_zone(next_stop)
             if is_full:
-                raise ValueError("ERROR: Drones can't enter next zone neither stay in "
+                raise ValueError("ERROR: Drones can't enter next "
+                                 "zone neither stay in "
                                  "connection for another turn.")
             next_stop.drones_in.append(self)
             currently_at.drones_in.remove(self)
