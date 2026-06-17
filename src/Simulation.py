@@ -1,5 +1,5 @@
 from src.MapParser import MapParser
-from src.GraphLogic import Graph, Zone, Connection
+from src.GraphLogic import Graph, Zone
 from src.Drone import Drone
 from src.Grid import Grid
 from typing import Any
@@ -7,6 +7,10 @@ import sys
 
 
 class Simulation:
+    """
+    Custom class responsible for the program's simulation itself.
+    """
+
     def __init__(self) -> None:
         self.graph: Graph | None = None
         self.grid: Grid | None = None
@@ -17,13 +21,14 @@ class Simulation:
 
     def configure(self, filename: str) -> None:
         """
-        Generates the graph structure based on data passed as
-        parameter and stores the data and graph as class attributes.
+        Calls MapParser class to read and parse map file data, and then
+        generates the grid, the graph and all drones based on this data.
 
         Parameters
         ----------
-        map: dict[str, Any]
-            Dictionary with all data regarding the graph and simulation.
+        filename: str
+            map file filename to pass to MapParser so it can access it's
+            contents.
         """
 
         try:
@@ -53,6 +58,18 @@ class Simulation:
         self.all_drones = self.drones.copy()
 
     def next_turn(self) -> str:
+        """
+        Advances 1 turn in the simulation. It iterates through all drones
+        and runs their act() method. It also saves the output string from
+        each action, appends it to the Simulation output attribute and writes
+        it to the output.txt file.
+
+        Returns
+        -------
+            str:
+                String containing only the turn output.
+        """
+
         self.__validate()
         if self.finished is True:
             return "FINISHED"
@@ -93,6 +110,8 @@ class Simulation:
         return turn_output
 
     def restart_simulation(self) -> None:
+        """Restarts the simulation."""
+
         self.__validate()
         self.finished = False
 
@@ -105,7 +124,6 @@ class Simulation:
                 for connection in self.graph.connections:
                     connection.drones_in.clear()
 
-
         # Reset all drones
         for drone in self.all_drones:
             if isinstance(self.graph, Graph):
@@ -113,7 +131,7 @@ class Simulation:
                     drone.reset()
         self.all_drones.clear()
         self.drones.clear()
-        
+
         if isinstance(self.graph, Graph):
             for _ in range(self.graph.nb_drones):
                 if isinstance(self.graph.start_hub, Zone):
@@ -128,10 +146,14 @@ class Simulation:
             os.remove("output.txt")
 
     def __write_output_file(self) -> None:
+        """Writes output file."""
+
         with open("output.txt", "w") as file:
             file.write(self.output)
 
     def __validate(self) -> None:
+        """Validation to check if Simulation's configure() method was run."""
+
         if not self.graph:
             raise ValueError("ERROR: Simulation configure() method must run "
                              "before anything else.")

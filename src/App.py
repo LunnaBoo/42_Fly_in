@@ -12,11 +12,12 @@ from textual.color import Color, ColorParseError
 from textual import getters, events
 from src.Simulation import Simulation
 from src.GraphLogic import Zone, Connection
+from typing import cast
 import sys
 
 
 class FlyInApp(App):
-    """App class responsable for the front-end of our program."""
+    """App class responsable for the front-end of this program."""
 
     CSS_PATH = "app.tcss"
 
@@ -27,17 +28,24 @@ class FlyInApp(App):
     finished = reactive(0)
 
     def compose(self) -> ComposeResult:
-        """Creates child widgets for the app."""
+        """Creates child widgets from the parent widget class."""
 
         yield Header(icon="boo!")
         yield Footer()
 
     def on_mount(self) -> None:
+        """
+        Runs during widget initialization. Useful for tweaking/configuring
+        a widget before it shows on screen.
+        """
+
         self.title = "✦ │  F l y - i n │ ✦"
         self.push_screen(WarningScreen())
 
 
 class WarningScreen(Screen):
+    """Warning screen that pops up as soon as program runs."""
+
     TITLE = """
 ▗▖ ▗▖   ▗▄▖   ▗▄▄▖   ▗▖  ▗▖  ▗▄▄▄▖  ▗▖  ▗▖   ▗▄▄▖
 ▐▌ ▐▌  ▐▌ ▐▌  ▐▌ ▐▌  ▐▛▚▖▐▌    █    ▐▛▚▖▐▌  ▐▌
@@ -46,6 +54,8 @@ class WarningScreen(Screen):
     """
 
     def compose(self) -> ComposeResult:
+        """Creates child widgets from the parent widget class."""
+
         yield Container(Static(
                         "[bold]About Connections... [/]\n"
                         "In the Visual Output tab "
@@ -69,24 +79,36 @@ class WarningScreen(Screen):
                         id="warning-container")
 
     async def on_key(self) -> None:
+        """Detects key presses and calls another method as response."""
+
         await self.skip_warning()
 
     async def skip_warning(self) -> None:
+        """Pops this screen from the stack and pushes the MainScreen"""
+
         try:
             self.dismiss()
         except ScreenStackError:
             pass
         self.app.call_after_refresh(lambda: self.app.push_screen(MainScreen()))
 
+
 class FinishedScreen(Screen):
+    """
+    Screen that pops once simulation is finished / all drones
+    get to the end hub.
+    """
+
     TITLE = """
-    ▗▄▄▄▖▗▄▄▄▖▗▖  ▗▖▗▄▄▄▖ ▗▄▄▖▗▖ ▗▖▗▄▄▄▖▗▄▄▄  
-    ▐▌     █  ▐▛▚▖▐▌  █  ▐▌   ▐▌ ▐▌▐▌   ▐▌  █ 
-    ▐▛▀▀▘  █  ▐▌ ▝▜▌  █   ▝▀▚▖▐▛▀▜▌▐▛▀▀▘▐▌  █ 
-    ▐▌   ▗▄█▄▖▐▌  ▐▌▗▄█▄▖▗▄▄▞▘▐▌ ▐▌▐▙▄▄▖▐▙▄▄▀ 
+    ▗▄▄▄▖▗▄▄▄▖▗▖  ▗▖▗▄▄▄▖ ▗▄▄▖▗▖ ▗▖▗▄▄▄▖▗▄▄▄
+    ▐▌     █  ▐▛▚▖▐▌  █  ▐▌   ▐▌ ▐▌▐▌   ▐▌  █
+    ▐▛▀▀▘  █  ▐▌ ▝▜▌  █   ▝▀▚▖▐▛▀▜▌▐▛▀▀▘▐▌  █
+    ▐▌   ▗▄█▄▖▐▌  ▐▌▗▄█▄▖▗▄▄▞▘▐▌ ▐▌▐▙▄▄▖▐▙▄▄▀
     """
 
     def compose(self) -> ComposeResult:
+        """Creates child widgets from the parent widget class."""
+
         yield Container(Static(
                         "[bold]Simulation finished![/]\n\n"
                         "You may look at simulation statistics in "
@@ -97,22 +119,37 @@ class FinishedScreen(Screen):
                         id="finished-container")
 
     async def on_key(self, event: events.Key) -> None:
+        """
+        Checks for key presses and calls another method,
+        unless the key pressed is 'd'. This rule was implemented to
+        avoid the user skipping this screen by accident.
+        """
+
         if event.key != "d":
             self.skip_warning()
 
     def skip_warning(self) -> None:
-        self.app.pop_screen()
+        """Pops this screen from the stack."""
+
+        try:
+            self.dismiss()
+        except ScreenStackError:
+            pass
 
 
 class ColorScreen(Screen):
+    """Screen that pops up to explain the colorscheme to the user."""
+
     TITLE = """
     ▗▖ ▗▖▗▖ ▗▖▗▄▄▖      ▗▄▄▖ ▗▄▖ ▗▖    ▗▄▖ ▗▄▄▖  ▗▄▄▖
-    ▐▌ ▐▌▐▌ ▐▌▐▌ ▐▌    ▐▌   ▐▌ ▐▌▐▌   ▐▌ ▐▌▐▌ ▐▌▐▌   
+    ▐▌ ▐▌▐▌ ▐▌▐▌ ▐▌    ▐▌   ▐▌ ▐▌▐▌   ▐▌ ▐▌▐▌ ▐▌▐▌
     ▐▛▀▜▌▐▌ ▐▌▐▛▀▚▖    ▐▌   ▐▌ ▐▌▐▌   ▐▌ ▐▌▐▛▀▚▖ ▝▀▚▖
     ▐▌ ▐▌▝▚▄▞▘▐▙▄▞▘    ▝▚▄▄▖▝▚▄▞▘▐▙▄▄▖▝▚▄▞▘▐▌ ▐▌▗▄▄▞▘
     """
 
     def compose(self) -> ComposeResult:
+        """Creates child widgets from the parent widget class."""
+
         yield Container(Static(
                         "[on#87286a]This color means RESTRICTED - "
                         "Drones take 2 turns"
@@ -124,31 +161,41 @@ class ColorScreen(Screen):
                         "Drones cannot enter "
                         "these hubs.[/]\n\n"
                         "[on#d03791]This color means NORMAL - "
-                        "Nothing special about" 
+                        "Nothing special about"
                         "these hubs.[/]\n\n"
                         "\n[blink]Press any key to continue[/]",
                         id="color-text"), Static(self.TITLE, id="title-4"),
                         id="color-container")
 
     async def on_key(self, event: events.Key) -> None:
+        """
+        Detects key presses and calls another method in respose, unless the
+        key pressed was 'h'. This rule was implemented to avoid bugs, since
+        'h' is the key binding to show this screen.
+        """
+
         if event.key != "h":
             await self.skip_warning()
 
     async def skip_warning(self) -> None:
+        """Pops this screen from the stack"""
+
         try:
             self.dismiss()
         except ScreenStackError:
             pass
-        self.app.call_after_refresh(lambda: self.app.push_screen(MainScreen()))
 
 
 class MainScreen(Screen):
+    """This is the program's main screen."""
 
     BINDINGS = [
         ("tab", "change_tab", "Change tab"),
     ]
 
     def compose(self) -> ComposeResult:
+        """Creates child widgets from the parent widget class."""
+
         yield Header(icon="boo!")
         yield Footer()
         self.tabbed_content = TabbedContent(initial="visual_tab")
@@ -159,43 +206,67 @@ class MainScreen(Screen):
                 yield TextualOutput()
 
     def on_mount(self) -> None:
+        """
+        Runs during widget initialization. Useful for tweaking/configuring
+        a widget before it shows on screen.
+        """
+
         self.query_one(Map).focus()
 
     def get_tabs_widget(self):
-        """Finds the internal Tabs widget (ContentTabs)."""
+        """Finds the internal Tabs widget in the ContentTabs widget."""
+
         main_screen = self.screen
         tabbed_content = main_screen.tabbed_content
         return tabbed_content.query_one(ContentTabs)
 
     def action_change_tab(self) -> None:
+        """
+        Gets the internal Tab widgets of Tabs so I can program this
+        action to change tabs every time it gets called.
+        It also changes color of the active Tab to make focus explicit
+        and tab navigation clearer.
+        """
+
         current = "visual"
-        if self.screen.tabbed_content.active == "textual_tab":
+        if cast(
+                MainScreen,
+                self.screen).tabbed_content.active == "textual_tab":
             self.query_one(Map).focus()
             current = "textual"
         tabs = self.query(Tab)
         for tab in tabs:
-            if "visual" in tab.id:
-                if current == "visual":
-                    tab.styles.background = "#d03791"
-            else:
-                if current == "textual":
-                    tab.styles.background = "#d03791"
+            if isinstance(tab.id, str):
+                if "visual" in tab.id:
+                    if current == "visual":
+                        tab.styles.background = "#d03791"
+                else:
+                    if current == "textual":
+                        tab.styles.background = "#d03791"
         self.get_tabs_widget().action_next_tab()
         for tab in tabs:
-            if "visual" in tab.id:
-                if current == "textual":
-                    tab.styles.background = "#e84a9e"
-            else:
-                if current == "visual":
-                    tab.styles.background = "#e84a9e"
-            
+            if isinstance(tab.id, str):
+                if "visual" in tab.id:
+                    if current == "textual":
+                        tab.styles.background = "#e84a9e"
+                else:
+                    if current == "visual":
+                        tab.styles.background = "#e84a9e"
+
 
 class ZoneBlock(Static):
+    """
+    Internal ZoneWidget responsible for rendering drones and
+    hub colors.
+    """
+
     def __init__(self, zone: Zone, **kwargs) -> None:
         super().__init__(**kwargs)
         self.zone = zone
 
     def update_drones(self) -> None:
+        """Checks drones in current zone and renders them."""
+
         if self.zone.drones_in:
             drones: str = ""
             for drone in self.zone.drones_in:
@@ -205,6 +276,11 @@ class ZoneBlock(Static):
             self.update("")
 
     def on_mount(self) -> None:
+        """
+        Runs during widget initialization. Useful for tweaking/configuring
+        a widget before it shows on screen.
+        """
+
         self.update_drones()
         if self.zone.kind == "normal":
             self.styles.background = "#d03791"
@@ -216,6 +292,8 @@ class ZoneBlock(Static):
             self.styles.background = "#fe6c90"
 
     def validate_color(self, zone: Zone) -> None:
+        """Makes sure chosen colors in the map file are valid."""
+
         try:
             Color.parse(zone.color)
         except ColorParseError:
@@ -223,6 +301,11 @@ class ZoneBlock(Static):
                  f"'{zone.name}' isn't supported.")
 
     def change_color(self, value: str) -> None:
+        """
+        Changes colorscheme between the built-in and the one set in the
+        map file.
+        """
+
         if self.zone.color and value == "default":
             self.validate_color(self.zone)
             self.styles.background = self.zone.color
@@ -232,7 +315,12 @@ class ZoneBlock(Static):
 
 
 class ZoneWidget(Container):
-    """Must add tooltip popup on click"""
+    """
+    A container widget resposnible for composing ZoneBlock widget and
+    a Label widget. The label widget is the one responsible for hub
+    names showing below the ZoneBlock widget.
+    """
+
     def __init__(self, zone: Zone, **kwargs) -> None:
         super().__init__(**kwargs)
         self.zone = zone
@@ -240,54 +328,82 @@ class ZoneWidget(Container):
     app = getters.app(FlyInApp)
 
     def compose(self) -> ComposeResult:
+        """Creates child widgets from the parent widget class."""
+
         yield ZoneBlock(self.zone)
         yield Label(self.zone.name, id="ZoneLabel")
 
 
-class Map(Container):
+class Map(Widget):
+    """
+    This widget holds the logic that builds the VisualOutput widget.
+    It translates the simulation grid to visual representation.
+    """
+
     app = getters.app(FlyInApp)
     can_focus = True
 
     def on_mount(self) -> None:
+        """
+        This method checks the simulation grid and creates
+        ZoneWidgets, Static widgets for connections, rendering the lines
+        we see representing connections in VisualOutput, and empty Static
+        widgets for empty coordenates.
+        It runs before the widget shows to the screen.
+        """
+
         grid = self.app.simulation.grid
         if grid:
             self.styles.grid_size_rows = grid.height
             self.styles.grid_size_columns = grid.width
-            zones_to_mount = []
+            zones_to_mount: list[ZoneWidget | Static] = []
             for y in range(grid.height):
                 for x in range(grid.width):
-                    zone = grid.matrix[
-                            y - grid.y_offset][x - grid.x_offset]
-                    if isinstance(zone, Zone):
-                        zones_to_mount.append(ZoneWidget(id=zone.id,
-                                                         zone=zone))
-                    elif isinstance(zone, Connection):
-                        zones_to_mount.append(Static(zone.char,
-                                                     classes="connection"))
-                    else:
-                        zones_to_mount.append(Static())
+                    if isinstance(grid.matrix, list):
+                        zone = grid.matrix[
+                                y - grid.y_offset][x - grid.x_offset]
+                        if isinstance(zone, Zone):
+                            zones_to_mount.append(ZoneWidget(id=zone.id,
+                                                             zone=zone))
+                        elif isinstance(zone, Connection):
+                            zones_to_mount.append(Static(zone.char,
+                                                         classes="connection"))
+                        else:
+                            zones_to_mount.append(Static())
             self.mount_all(zones_to_mount)
 
 
 class ImpossibleScreen(Screen):
+    """Warning screen that pops up if a map is unsolvable."""
+
     TITLE = """
     ▗▄▄▄▖▗▖  ▗▖▗▄▄▖  ▗▄▖  ▗▄▄▖ ▗▄▄▖▗▄▄▄▖▗▄▄▖ ▗▖   ▗▄▄▄▖
-      █  ▐▛▚▞▜▌▐▌ ▐▌▐▌ ▐▌▐▌   ▐▌     █  ▐▌ ▐▌▐▌   ▐▌   
+      █  ▐▛▚▞▜▌▐▌ ▐▌▐▌ ▐▌▐▌   ▐▌     █  ▐▌ ▐▌▐▌   ▐▌
       █  ▐▌  ▐▌▐▛▀▘ ▐▌ ▐▌ ▝▀▚▖ ▝▀▚▖  █  ▐▛▀▚▖▐▌   ▐▛▀▀▘
     ▗▄█▄▖▐▌  ▐▌▐▌   ▝▚▄▞▘▗▄▄▞▘▗▄▄▞▘▗▄█▄▖▐▙▄▞▘▐▙▄▄▖▐▙▄▄▖
     """
 
     def compose(self) -> ComposeResult:
+        """Creates child widgets from the parent widget class."""
+
         yield Container(Static("[bold]Something went wrong...[/]\n\n"
-                        "There is no possible route from "
-                        "start_hub to end_hub.\nThis map is unsolvable.\n\n"
-                        "You may quit the program with\n [blink]ctrl + q[/]",
-                        id="impossible-text"), Static(self.TITLE,
-                                                      id="title-2"),
+                               "There is no possible route from "
+                               "start_hub to end_hub.\nThis map is "
+                               "unsolvable.\n\n"
+                               "You may quit the program with\n"
+                               "[blink]ctrl + q[/]",
+                               id="impossible-text"), Static(self.TITLE,
+                                                             id="title-2"),
                         id="impossible-container")
 
 
 class VisualOutput(Widget):
+    """
+    Widget that composes the Map widget, which renders the grid,
+    inside a ScrollableContainer widget. This makes it possible to
+    scroll vertically and horizontally when in VisualOutput.
+    """
+
     BINDINGS = [
         ("a", "restart_simulation", "Restarts simulation"),
         ("d", "next_turn", "Shows next turn"),
@@ -298,26 +414,33 @@ class VisualOutput(Widget):
     current_colorscheme = reactive("custom")
 
     def compose(self) -> ComposeResult:
+        """Creates child widgets from the parent widget class."""
+
         yield ScrollableContainer(Map())
 
     def action_restart_simulation(self) -> None:
-        if self.app.turn_number < 1:
+        """Action responsible for restarting the simulation."""
+
+        app = cast(FlyInApp, self.app)
+        if app.turn_number < 1:
             return
-        self.app.simulation.restart_simulation()
-        self.app.turn_number = 0
-        self.app.finished = 0
+        app.simulation.restart_simulation()
+        app.turn_number = 0
+        app.finished = 0
         zones = self.query(ZoneBlock)
         for zone in zones:
             zone.update_drones()
         self.refresh()
 
     def action_next_turn(self) -> None:
-        """Action method to show the next simulation turn"""
-        output = self.app.simulation.next_turn()
-        if self.app.simulation.finished is True:
-            if self.app.finished == 0:
-                self.app.push_screen(FinishedScreen())
-                self.app.finished = 1
+        """Action responsible to show the next simulation turn"""
+
+        app = cast(FlyInApp, self.app)
+        output = app.simulation.next_turn()
+        if app.simulation.finished is True:
+            if app.finished == 0:
+                app.push_screen(FinishedScreen())
+                app.finished = 1
                 self.screen.query_one(TextualOutput)._on_turn_changed()
                 zones = self.query(ZoneBlock)
                 for zone in zones:
@@ -330,13 +453,18 @@ class VisualOutput(Widget):
             except Exception:
                 pass
             self.app.push_screen(ImpossibleScreen())
-            
+
         zones = self.query(ZoneBlock)
         for zone in zones:
             zone.update_drones()
-        self.app.turn_number += 1
+        app.turn_number += 1
 
     def action_change_colorscheme(self) -> None:
+        """
+        Action responsible to change colorschemes for all
+        ZoneBlock widgets.
+        """
+
         if self.current_colorscheme == "default":
             self.current_colorscheme = "custom"
         else:
@@ -347,15 +475,28 @@ class VisualOutput(Widget):
             zone.refresh()
 
     def action_show_colors(self) -> None:
+        """Action responsible for pushing the ColorScreen."""
+
         self.app.push_screen(ColorScreen())
 
 
 class TextualOutput(Widget):
+    """Widget that builds all content in the TextualOutput tab."""
 
     def on_mount(self) -> None:
+        """
+        Reads map file in order to show it's contents into the screen,
+        removes focus capacity of all widgets to avoid bugs and renders
+        the initial state of the turn count.
+        It also watches for changes in turn_number variable and calls
+        _on_turn_changed() method.
+        This method runs before the widget is shown in the screen.
+        """
+
+        app = cast(FlyInApp, self.app)
         self.watch(self.app, "turn_number", self._on_turn_changed)
         try:
-            with open(self.app.argv[1], "r") as file:
+            with open(app.argv[1], "r") as file:
                 map_lines = file.readlines()
         except FileNotFoundError:
             raise ValueError("ERROR: No map file detected!")
@@ -369,12 +510,18 @@ class TextualOutput(Widget):
         left_pane.can_focus = False
         right_pane.can_focus = False
         top_pane.can_focus = False
-        top_pane.mount(Static(f"N u m b e r   o f   T u r n s :  0",
+        top_pane.mount(Static("N u m b e r   o f   T u r n s :  0",
                               id="display-turn"))
         for line in map_lines:
             left_pane.mount(Static(line.strip(), markup=False))
 
     def _on_turn_changed(self) -> None:
+        """
+        Reads the output.txt file after each turn, updating the
+        data shown in the TextualOutput, and it updates the turn
+        count being rendered in the screen.
+        """
+
         try:
             with open("output.txt", "r") as file:
                 output_lines = file.readlines()
@@ -384,20 +531,22 @@ class TextualOutput(Widget):
             output_lines = ["output file data couldn't be shown due to "
                             "permission errors. Change file permissions "
                             "to fix this."]
-        right_static = self.query_one("#right-static")
+        right_static = cast(Static, self.query_one("#right-static"))
         output = ""
         for line in output_lines:
             output += line.strip() + "\n"
         try:
-            display_turn = self.query_one("#display-turn")
+            display_turn = cast(Static, self.query_one("#display-turn"))
             display_turn.update(f"N u m b e r   o f   T u r n s :"
                                 f"  {len(output_lines)}")
         except NoMatches:
             pass
         right_static.update(output)
         self.refresh()
-    
+
     def compose(self) -> ComposeResult:
+        """Creates child widgets from the parent widget class."""
+
         with Container(id="app-grid"):
             with Container(id="top-pane"):
                 yield Static()

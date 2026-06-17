@@ -8,6 +8,7 @@ class MapParser:
     data from an input .txt file but also validating it
     according to our program's rules.
     """
+
     valid_keys: list[str] = [
             "nb_drones", "start_hub", "end_hub",
             "hub", "connection"
@@ -15,6 +16,23 @@ class MapParser:
 
     @classmethod
     def parse_data(cls, filename: str) -> dict[str, Any]:
+        """
+        Main method responsible for parsing the data. It reads from the
+        map file, extracts data, validates it and sends to helper
+        methods to finish parsing and do extra validation.
+
+        Parameters
+        ----------
+        filename: str
+            Map file filename. Needed to access the file's contents.
+
+        Returns
+        -------
+        dict[str, Any]
+            A dictionary with all data extracted from map file parsed
+            and validated.
+        """
+
         data: dict[str, Any] = {}
         with open(filename, "r") as file:
             for i, line in enumerate(file, 1):
@@ -84,6 +102,20 @@ class MapParser:
 
     @staticmethod
     def __parse_nb_drones(value: str) -> int:
+        """
+        Helper method to parse nb_drones data.
+
+        Parameters
+        ----------
+        value: str
+            A string containing the number of drones.
+
+        Returns
+        -------
+        int:
+            The number of drones parsed and validated.
+        """
+
         try:
             parsed_value: int = int(value)
             if parsed_value < 0:
@@ -94,15 +126,31 @@ class MapParser:
 
     @staticmethod
     def __parse_hub(key: str, value: str) -> Zone:
+        """
+        Helper method to parse hub data and create Zone objects.
+
+        Parameters
+        ----------
+        key: str
+            String with the name of the hub.
+        value: str
+            String with every other value and metadata of that hub.
+
+        Returns
+        -------
+        Zone:
+            The Zone object created from the data passed by parameters.
+        """
+
         try:
             split = value.split(" ", 3)
             if len(split) > 3:
-                name, x, y, metadata = split
+                name, s_x, s_y, metadata = split
             else:
-                name, x, y = split
+                name, s_x, s_y = split
                 metadata = None
-            x = int(x)
-            y = int(y)
+            x = int(s_x)
+            y = int(s_y)
             pos: tuple[int, int] = (y, x)
             zone_type: str = "normal"
             color: str | None = None
@@ -141,6 +189,24 @@ class MapParser:
 
     @staticmethod
     def __parse_connection(value: str, hub: Zone) -> Connection:
+        """
+        Helper method to parse connection data and create
+        Connection objects.
+
+        Parameters
+        ----------
+        value: str
+            String with all data and metadata of a connection.
+        hub: Zone
+            A random Zone object used to get access to the list of
+            all Zone objects in the simulation.
+
+        Returns
+        -------
+        Connection
+            Connection object created from the data passed by parameters.
+        """
+
         try:
             max_link: int = 1
             next_zone = None
@@ -173,14 +239,15 @@ class MapParser:
                     connection_next = connection.next_zone.name
                     connection_check = sorted([connection_prev,
                                                connection_next])
-                    for item in connection_list:
-                        if item == connection:
-                            continue
-                        item_prev = item.previous_zone.name
-                        item_next = item.next_zone.name
-                        item_check = sorted([item_prev, item_next])
-                        if item_check == connection_check:
-                            raise ValueError()
+                    for n_item in connection_list:
+                        if isinstance(n_item, Connection):
+                            if n_item == connection:
+                                continue
+                            item_prev = n_item.previous_zone.name
+                            item_next = n_item.next_zone.name
+                            item_check = sorted([item_prev, item_next])
+                            if item_check == connection_check:
+                                raise ValueError()
             else:
                 raise ValueError()
         except Exception:
@@ -189,6 +256,20 @@ class MapParser:
 
     @staticmethod
     def __validate(data: dict[str, Any]) -> dict[str, Any]:
+        """
+        Helper method to validate parsed data.
+
+        Parameters
+        ----------
+        data: dict[str, Any]
+            Parsed data from map file.
+
+        Returns
+        -------
+        data: dict[str, Any]
+            Parsed and validated data from map file.
+        """
+
         zone_list = data["hub"]._all_zones
         connection_list = data["connection"]._all_connections
         name_list = []

@@ -3,7 +3,7 @@ from typing import Any
 
 class Zone:
     """
-
+    Custom class to represent the hubs in the program's simulation.
     """
     _all_zones: list["Zone"] = []
 
@@ -34,13 +34,19 @@ class Zone:
         Zone._all_zones.append(self)
 
     def __lt__(self, zone: "Zone"):
+        """
+        Magic method that handles cases where zones are
+        compared against other zones.
+        """
+
         return self.weight < zone.weight
 
 
 class Connection:
     """
-
+    Custom class representing connections in the program's simulation.
     """
+
     _all_connections: list["Connection"] = []
 
     def __init__(self, name: str,
@@ -60,8 +66,10 @@ class Connection:
 
 class Graph:
     """
-
+    Custom class holding all relevant data to build the simulation's
+    graph and validating them.
     """
+
     def __init__(self) -> None:
         self.hubs: list[Zone] | None = None
         self.connections: list[Connection] | None = None
@@ -71,6 +79,13 @@ class Graph:
 
     def configure(self, map: dict[str, Any]) -> None:
         """
+        Populates the class attributes, validates data and populates
+        each Zone's 'connections' attribute.
+
+        Parameters
+        ----------
+        map: dict[str, Any]:
+            Dictionary containing all parsed data from map file.
         """
 
         zones = map["hub"]._all_zones
@@ -95,7 +110,17 @@ class Graph:
                        connections: list[Connection],
                        nb_drones: int) -> None:
         """
+        Validation method.
 
+        Parameters
+        ----------
+        zones: list[Zone]
+            A list containing all Zone objects of the simulation.
+        connections: list[Connection]
+            A list containing all Connection objects of the simulation.
+        nb_drones: int
+            Integer representing the number of drones of the simulation.
         """
+
         if len(zones) < 1 or len(connections) < 1 or nb_drones < 1:
             raise ValueError("ERROR: Map file is incomplete.")

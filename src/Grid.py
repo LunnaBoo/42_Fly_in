@@ -1,18 +1,24 @@
 from typing import Any
 from src.GraphLogic import Zone, Connection
+from collections.abc import MutableSequence
 
 
 class Grid:
     """
-
+    Custom class responsible for building the grid, based on the Graph
+    data, used by Textual lib in App.py file to render the visual
+    representation of the graph.
     """
+
     def __init__(self, map: dict[str, Any]) -> None:
         self.nb_drones: int = map.get("nb_drones", -1)
         hub = map.get("hub", {})
         connection = map.get("connection", {})
         self.hubs: list[Zone] = hub._all_zones
         self.connections: list[Connection] = connection._all_connections
-        self.matrix: list[list[Zone | int | Connection]] | None = None
+        self.matrix: list[MutableSequence[
+            Zone | int | Connection
+            ]] | None = None
         self.height: int = 0
         self.width: int = 0
         self.y_offset: int = 0
@@ -22,12 +28,12 @@ class Grid:
     def get_area(hubs: list[Zone]) -> dict[str, int]:
         """
         Calculates the necessary measures for the
-        generate_graph() method to define the area of the
+        generate_grid() method to define the area of the
         grid which will represent the graph.
 
         Parameters
         ----------
-        hubs: dict[str, Zone]
+        hubs: dict[Zone]
             Dictionary with all Zones from the current map.
 
         Returns
@@ -52,17 +58,17 @@ class Grid:
 
     @staticmethod
     def fill_grid(
-            grid: list[list[Zone | int]],
+            grid: list[MutableSequence[Zone | int]],
             height: int, width: int
-            ) -> list[list[Zone | int]]:
+            ) -> list[MutableSequence[Zone | int]]:
         """
-        Get's the chosen measures for the graphic
+        Get's the chosen measures for the grid
         and fills it all in with 0's.
 
         Parameters
         ----------
-        graph: list[list[Zone | int]]
-            The empty graph matrix.
+        grid: list[list[Zone | int]]
+            The empty grid matrix.
         height: int
             Chosen height for the graph matrix.
         width: int
@@ -71,12 +77,12 @@ class Grid:
         Returns
         -------
         list[list[Zone | int]]
-            The updated graph matrix with all spaces
+            The updated grid matrix with all spaces
             filled with 0's.
         """
 
         for _ in range(height):
-            row = []
+            row: MutableSequence = []
             for _ in range(width):
                 row.append(0)
             grid.append(row)
@@ -133,7 +139,7 @@ class Grid:
         x_offset: int
             x offset used to access the correct coordinate
             in the graph matrix.
-        hubs: dict[str, Zone]
+        hubs: list[Zone]
             Dictionary containing all zones from the current
             map.
 
@@ -142,7 +148,7 @@ class Grid:
         Zone:
             If a zone is found at the given coordinates,
             returns a zone object.
-        Int:
+        int:
             If no zone is found at the given coordinates,
             returns 0.
         """
@@ -156,16 +162,33 @@ class Grid:
 
     @staticmethod
     def fill_n_grid(
-            n_grid: list[list[Zone | Connection | int]],
+            n_grid: list[MutableSequence[Zone | Connection | int]],
             height: int, width: int
-            ) -> list[list[Zone | Connection | int]]:
+            ) -> list[MutableSequence[Zone | Connection | int]]:
+        """
+        Same as fill_grid method, but in a grid with double the size
+        in order to also accommodate Connections.
+
+        Parameters
+        ----------
+        n_grid: list[list[Zone | Connection | int]]
+            The empty grid matrix.
+        height: int
+            Chosen height for the graph matrix.
+        width: int
+            Chosen width for the graph matrix.
+
+        Returns
+        -------
+        list[list[Zone | Connection | int]]
+            The updated grid matrix with all spaces
+            filled with 0's.
         """
 
-        """
         new_height: int = height + (height - 1)
         new_width: int = width + (width - 1)
         for _ in range(new_height):
-            row = []
+            row: MutableSequence = []
             for _ in range(new_width):
                 row.append(0)
             n_grid.append(row)
@@ -176,13 +199,30 @@ class Grid:
             zone: Zone, connection_list: list[Connection]
             ) -> tuple[list[Connection], list[int]]:
         """
+        Defines the grid coordinate of connections in relation to other
+        zones and returns the Connection object and the direction it is
+        positioned in the grid.
 
+        Parameters
+        ----------
+        zone: Zone
+            Zone object to check in order to find neighbour connections.
+        connection_list: list[Connection]:
+            A list of all Connection objects present in the simulation.
+
+        Returns
+        -------
+        tuple[list[Connection], list[int]]:
+            A tuple containing a list of Connection objects and another list
+            with integers representing the directions of each zone in the
+            first list.
         """
+
         directions: list[tuple[int, int]] = [
-                (-1, 1),  # acima frente
-                (0, 1),   # frente
-                (1, 0),   # abaixo
-                (1, 1)    # abaixo frente
+                (-1, 1),  # foward above
+                (0, 1),   # foward
+                (1, 0),   # down
+                (1, 1)    # foward down
                 ]
         connection_directions: list[int] = []
         object_list: list[Connection] = []
@@ -209,14 +249,35 @@ class Grid:
 
     @staticmethod
     def add_connections(
-            grid: list[list[Zone | int]],
+            grid: list[MutableSequence[Zone | int]],
             width: int, height: int,
             connections: list[Connection]
-                    ) -> list[list[Zone | Connection | int]]:
+                    ) -> list[MutableSequence[Zone | Connection | int]]:
+        """
+        Adds Connection objects to the grid and defines a str to
+        it's 'char' attribute based on it's direction in relation
+        to other zones. This attribute is later used by the front-end.
+
+        Parameters
+        ----------
+        grid: list[list[Zone | int]]
+            Bidimensional matrix representing the grid. Only Zone objects
+            and 0's at the moment.
+        width: int
+            Grid width.
+        height: int
+            Grid height.
+        connections: list[Connection]
+            List of all Connection objects present in the simulation.
+
+        Returns
+        -------
+        list[list[Zone | Connection | int]]
+            Bidimensional matrix representing the grid. Now containing
+            Zone objects, Connection objects and 0's. Double the size.
         """
 
-        """
-        n_grid: list[list[Zone | Connection | int]] = []
+        n_grid: list[MutableSequence[Zone | Connection | int]] = []
         n_grid = Grid.fill_n_grid(n_grid, height, width)
         new_width = width + (width - 1)
         new_height = height + (height - 1)
@@ -262,43 +323,34 @@ class Grid:
                     n_grid[ny][nx] = 0
         return n_grid
 
-# diretamente a frente
-# diretamente em baixo
-# diretamente em cima
-# em cima  a frente
-# em baixo a frente
-
     def generate_grid(self) -> dict[str, Any]:
         """
-        Generates the graph to be later traversed by the
-        drones.
+        Generates the grid to be later used in the front-end. Calls
+        all previous methods in order to achieve this.
 
         Returns
         -------
-        list[list[Zone | int]]
-            A bidimensional matrix of Zone and int objects.
-            Zone objects in their given coordinates passed
-            through self.hubs and int, zeros, where there
-            are no zones.
-            In a nutshell:
-            0 = blank space,
-            Zone object = actual zone.
+        dict[str, Any]
+            A dictionary with the complete grid, containing Zone objects,
+            Connection objects and 0's for empty areas, grid width and
+            height and x/y offsets, in order to access by index
+            specific coordinates in the grid.
         """
 
         measures: dict[str, int] = Grid.get_area(self.hubs)
         width: int = (measures["x_max"] - measures["x_min"]) + 1
         height: int = (measures["y_max"] - measures["y_min"]) + 1
 
-        grid: list[list[Zone | int]] = []
+        grid: list[MutableSequence[Zone | int]] = []
         grid = Grid.fill_grid(grid, height, width)
         y_offset, x_offset = Grid.get_offset(measures)
         for y in range(height):
             for x in range(width):
                 zone = Grid.decide_zone(y, x, y_offset,
-                                                 x_offset, self.hubs)
+                                        x_offset, self.hubs)
                 grid[y][x] = zone
         n_grid = Grid.add_connections(grid, width,
-                                                height, self.connections)
+                                      height, self.connections)
         self.matrix = n_grid
         self.height = (height * 2) - 1
         self.width = (width * 2) - 1
