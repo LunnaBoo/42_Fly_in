@@ -90,7 +90,7 @@ class FinishedScreen(Screen):
                         "[bold]Simulation finished![/]\n\n"
                         "You may look at simulation statistics in "
                         "the Textual tab.\n Just press 'space' and "
-                        "change tabs with 'k'."
+                        "change tabs with 'tab'."
                         "\n\n[blink]Press SPACE to continue[/]",
                         id="finished-text"), Static(self.TITLE, id="title-3"),
                         id="finished-container")
