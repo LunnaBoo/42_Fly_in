@@ -1,0 +1,282 @@
+Header {
+	background: #87286a;
+}
+
+Header > HeaderTitle {
+	text-style: italic bold;	
+}
+
+Header > HeaderIcon {
+	text-style: italic;
+	margin: 0 1;
+}
+
+Footer {
+	background: #87286a;
+}
+
+VisualOutput {
+	border: white;
+	background: #260d34;
+	margin: 0 0;
+	height: auto;
+	width: 100%;
+}
+
+TextualOutput {
+	border: white;
+	background: #260d34;
+	margin: 0 0;
+	height: 1fr;
+	width: 1fr;
+}
+
+.connection {
+	text-style: bold;
+	text-align: center;
+	content-align: center middle;
+	height: 3;
+	width: 11;
+	margin: 0 0;
+	padding: 0 0;
+}
+
+Map {
+	layout: grid;
+	background: #452459;
+	align: center middle;
+	padding: 2 2;
+	grid_rows: auto;
+	grid-columns: auto;
+	width: auto;
+	height: auto;
+	grid-gutter: 1;
+}
+
+#impossible-container {
+	layout: horizontal;
+	align: center middle;
+	height: 100%;
+	width: 100%;
+}
+
+#title-2 {
+	dock: top;
+	background: #d03791;
+	content-align: center top;
+	align: center top;
+}
+
+#impossible-text {
+	text-align: center;
+	content-align: center middle;
+	border: dashed white;
+	width: 50%;
+	height: 60%;
+	background: #452459;
+}
+
+ImpossibleScreen {
+	background: #260d34;
+	align: center middle;
+	text-align: center;
+	padding: 2 2;
+}
+
+ColorScreen {
+	background: #260d34;
+	align: center middle;
+	text-align: center;
+	padding: 2 2;
+}
+
+#color-text {
+	text-align: center;
+	content-align: center middle;
+	width: 50%;
+	height: 60%;
+	background: black;
+}
+
+#title-4 {
+	dock: top;
+	background: #d03791;
+	content-align: center top;
+	align: center top;
+}
+
+FinishedScreen {
+	background: #260d34;
+	align: center middle;
+	text-align: center;
+	padding: 2 2;
+}
+
+#finished-text {
+	text-align: center;
+	content-align: center middle;
+	border: dashed white;
+	width: 50%;
+	height: 60%;
+	background: #452459;
+}
+
+#title-3 {
+	dock: top;
+	background: #d03791;
+	content-align: center top;
+	align: center top;
+}
+
+#color-container {
+	layout: horizontal;
+	align: center middle;
+	height: 100%;
+	width: 100%;
+}
+
+#finished-container {
+	layout: horizontal;
+	align: center middle;
+	height: 100%;
+	width: 100%;
+}
+
+
+#title {
+	dock: top;
+	background: #d03791;
+	content-align: center top;
+	align: center top;
+}
+
+#warning-text {
+	text-align: center;
+	content-align: center middle;
+	border: dashed white;
+	width: 50%;
+	height: 60%;
+	background: #452459;
+}
+
+WarningScreen {
+	background: #260d34;
+	align: center middle;
+	text-align: center;
+	padding: 2 2;
+}
+
+#warning-container {
+	layout: horizontal;
+	align: center middle;
+	height: 100%;
+	width: 100%;
+}
+
+
+Tabs {
+	height: 2;
+	width: 100%;
+	background: #87286a;
+}
+
+Tab {
+	color: white;
+	background: #d03791;
+	height: 2;
+	width: 50%;
+	padding: 0 1;
+}
+
+ScrollableContainer {
+	scrollbar-color: white;
+	scrollbar-background: #260d34;
+	scrollbar-corner-color: #260d34;
+}
+
+ZoneWidget {
+	height: 1fr;
+	width: 1fr;
+}
+
+#ZoneLabel {
+	text-style: bold;
+	padding: 0 1;
+	width: 100%;
+	border: dashed white;
+	height: auto;
+	text-align: center;
+}
+
+ZoneBlock {
+	box-sizing: content-box;
+	keyline: thin white;
+	background: #d03791;
+	margin: 0 0;
+	padding: 0;
+	width: 15;
+	height: 5;
+	min_width: 0;
+}
+
+#app-grid {
+    layout: grid;
+    grid-size: 2 2;
+    grid-columns: 1fr 1fr;
+    grid-rows: auto 1fr;
+	height: 100%;
+	grid-gutter: 1;
+}
+
+#left-pane > Static {
+	background: #452459;
+    color: auto;
+}
+
+#left-pane {
+    width: 100%;
+    height: 100%;
+    row-span: 2;
+	background: #260d34;
+	border: ascii white;
+}
+
+#right-pane {
+    width: 100%;
+    height: 100%;
+    row-span: 2;
+	background: #260d34;
+	border: ascii white;
+}
+
+#right-pane > Static {
+	background: #452459;
+	color: auto;
+}
+
+#top-pane {
+	background: #260d34;
+	column-span: 2;
+	width: 100%;
+	border: ascii white;
+}
+
+#top-pane > Static {
+	background: #452459;
+	color: auto;
+	text-align: center;
+	width: 100%;
+	height: 2;
+}
+
+#textual-right-label {
+	width: 100%;
+	background: #260d34;
+	text-style: underline;
+}
+
+#textual-left-label {
+	width: 100%;
+	background: #260d34;
+	text-style: underline;
+}
