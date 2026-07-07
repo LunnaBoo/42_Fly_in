@@ -34,8 +34,10 @@ class MapParser:
         """
 
         data: dict[str, Any] = {}
+        nb_lines = 0
         with open(filename, "r") as file:
             for i, line in enumerate(file, 1):
+                nb_lines = i
                 line = line.strip()
                 if not line or line.startswith("#"):
                     continue
@@ -66,8 +68,8 @@ class MapParser:
                     except Exception:
                         raise ValueError("ERROR: Invalid value in map "
                                          f"file at line {i}. "
-                                         "Only positive numbers are allowed "
-                                         "for nb_drones.")
+                                         "Only non-zero positive numbers are "
+                                         "allowed for nb_drones.")
                 elif key == "hub":
                     try:
                         data["hub"] = MapParser.__parse_hub(key, value)
@@ -98,7 +100,9 @@ class MapParser:
                 else:
                     raise ValueError("ERROR: Unknown key in map file "
                                      f"at line {i}")
-        return MapParser.__validate(data)
+            if nb_lines == 0:
+                raise ValueError("ERROR: Map file is empty")
+        return MapParser.__validate(data, cls.valid_keys)
 
     @staticmethod
     def __parse_nb_drones(value: str) -> int:
@@ -116,11 +120,8 @@ class MapParser:
             The number of drones parsed and validated.
         """
 
-        try:
-            parsed_value: int = int(value)
-            if parsed_value < 0:
-                raise Exception
-        except Exception:
+        parsed_value: int = int(value)
+        if parsed_value <= 0:
             raise ValueError()
         return parsed_value
 
@@ -173,6 +174,8 @@ class MapParser:
                         color = n_value
                     elif n_key == "max_drones":
                         max_drones = int(n_value)
+                        if max_drones <= 0:
+                            raise ValueError()
                     else:
                         raise ValueError()
             accepted_types = ["normal", "blocked", "priority", "restricted"]
@@ -255,7 +258,8 @@ class MapParser:
         return connection
 
     @staticmethod
-    def __validate(data: dict[str, Any]) -> dict[str, Any]:
+    def __validate(data: dict[str, Any],
+                   valid_keys: list[str]) -> dict[str, Any]:
         """
         Helper method to validate parsed data.
 
@@ -270,6 +274,17 @@ class MapParser:
             Parsed and validated data from map file.
         """
 
+        if not data:
+            raise ValueError("ERROR: Empty map file.")
+        keys: list = []
+        for key in data:
+            keys.append(key)
+        keys.sort()
+        valid_keys.sort()
+        if keys != valid_keys:
+            raise ValueError("ERROR: Missing keys in map file. Necessary keys "
+                             "are: nb_drones, start_hub, hub, end_hub "
+                             "and connection")
         zone_list = data["hub"]._all_zones
         connection_list = data["connection"]._all_connections
         name_list = []
