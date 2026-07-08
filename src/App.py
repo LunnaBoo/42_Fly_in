@@ -72,7 +72,7 @@ class WarningScreen(Screen):
                         "terminal emulator, meaning you'll have to zoom in"
                         " and out "
                         "manually.\n"
-                        "Resizing shortcuts may very depending on your "
+                        "Resizing shortcuts may vary depending on your "
                         "terminal emulator."
                         "\n\n[blink]Press any key to continue[/]",
                         id="warning-text"), Static(self.TITLE, id="title"),
