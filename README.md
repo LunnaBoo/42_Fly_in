@@ -1,5 +1,5 @@
 _This project has been created as part
-of the 42 curriculum by luccribe._
+of the 42 curriculum by lunribei._
 
 # Description
 The **Fly-in** project's goal is to develop a program capable of reading data from a .txt file, build a graph based on it
